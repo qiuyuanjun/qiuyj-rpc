@@ -34,4 +34,9 @@ public class NettyRpcClientMessageHandler extends ChannelInboundHandlerAdapter {
       ResponseManager.INSTANCE.done(response);
     }
   }
+
+  @Override
+  public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    super.exceptionCaught(ctx, cause);
+  }
 }

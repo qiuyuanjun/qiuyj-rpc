@@ -24,7 +24,9 @@ public class NettyConnection extends AbstractConnection {
     if (message instanceof RpcMessage) {
       String requestId = ((RequestInfo) ((RpcMessage) message).getContent()).getRequestId();
       channel.writeAndFlush(message);
+      // 同步等待结果
       ResponseManager.INSTANCE.waitForResponseResult(requestId);
+      // 服务器端已经返回结果，那么将结果设置到ResponseManager里面
       return ResponseManager.INSTANCE.getResult(requestId);
     }
     return null;
