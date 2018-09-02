@@ -4,8 +4,6 @@ import com.qiuyj.qrpc.client.ConfigurableRpcClient;
 import com.qiuyj.qrpc.client.netty.NettyRpcClient;
 import org.junit.Test;
 
-import java.util.concurrent.TimeUnit;
-
 /**
  * @author qiuyj
  * @since 2018-08-29
@@ -20,5 +18,7 @@ public class ClientTest {
     client.connect();
     TestService testService = client.getServiceInstance();
     System.out.println(testService.sayHello());
+    System.out.println(testService.hashCode());
+    System.out.println(testService.toString());
   }
 }
