@@ -1,0 +1,7 @@
+dependencies {
+  compile(project(":api"))
+  compile(project(":qrpc-commons"))
+  compile(project(":qrpc-codec"))
+  compile(project(":qrpc-server"))
+  compile("io.netty:netty-all:${nettyVersion}")
+}

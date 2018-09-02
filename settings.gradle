@@ -1,0 +1,17 @@
+rootProject.name = "qrpc"
+
+include "server-side"
+findProject(":server-side")?.name = "qrpc-server"
+
+include "basic-api"
+findProject(":basic-api")?.name = "api"
+
+include "qiuyj-rpc-commons"
+findProject(":qiuyj-rpc-commons")?.name = "qrpc-commons"
+
+include "codec"
+findProject(":codec")?.name = "qrpc-codec"
+
+include 'client-side'
+findProject(':client-side')?.name = 'qrpc-client'
+

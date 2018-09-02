@@ -1,0 +1,50 @@
+allprojects {
+
+  group "com.qiuyj"
+  version "1.0.0"
+
+  apply plugin: "java"
+  apply plugin: "idea"
+
+  repositories {
+    mavenLocal()
+    mavenCentral()
+  }
+
+  dependencies {
+    testCompile("junit:junit:4.12")
+  }
+
+  jar {
+    manifest {
+      attributes('Implementation-Title': project.name,
+          'Implementation-Version': project.version)
+    }
+  }
+
+  idea {
+    module {
+//      downloadJavadoc = false  // 默认就是false
+      downloadSources = false    // 禁止默认下载jar对应的源码
+    }
+  }
+}
+
+subprojects {
+
+  sourceCompatibility = 10
+  targetCompatibility = 10
+
+  [compileJava,compileTestJava,javadoc]*.options*.encoding = "UTF-8"
+
+  ext {
+    nettyVersion = "4.1.25.Final"
+    log4j2Version = "2.11.0"
+  }
+
+  dependencies {
+    compile("org.apache.logging.log4j:log4j-slf4j-impl:${log4j2Version}")
+    compile("com.qiuyj:qiuyj-commons:1.1.1")
+  }
+
+}

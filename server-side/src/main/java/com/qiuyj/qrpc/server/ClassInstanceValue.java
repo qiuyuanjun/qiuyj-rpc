@@ -1,0 +1,82 @@
+package com.qiuyj.qrpc.server;
+
+import java.util.Objects;
+
+/**
+ * @author qiuyj
+ * @since 2018-06-13
+ */
+@SuppressWarnings("unchecked")
+public class ClassInstanceValue<T> {
+
+  private Class<? super T> serviceInterface;
+
+  private T instance;
+
+  private ClassInstanceValue() {
+    // for inner usages
+  }
+
+  public ClassInstanceValue(Class<? super T> serviceInterface, T instance) {
+    this.serviceInterface = serviceInterface;
+    this.instance = instance;
+  }
+
+  public Class<? super T> getServiceInterface() {
+    return serviceInterface;
+  }
+
+  public void setServiceInterface(Class<?> serviceInterface) {
+    this.serviceInterface = (Class<? super T>) serviceInterface;
+  }
+
+  public T getInstance() {
+    return instance;
+  }
+
+  public void setInstance(Object instance) {
+    this.instance = (T) instance;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ClassInstanceValue<?> that = (ClassInstanceValue<?>) o;
+    return Objects.equals(serviceInterface, that.serviceInterface) &&
+        Objects.equals(instance, that.instance);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(serviceInterface, instance);
+  }
+
+  /**
+   * 提供给外部方便的创建对象的方法，主要是考虑到了没有泛型的情况
+   * @param serviceInterface 接口
+   * @param instance 接口实例
+   * @return {@code ClassInstanceValue}对象
+   */
+  public static ClassInstanceValue<?> newInstance(Class<?> serviceInterface, Object instance) {
+    if (!serviceInterface.isInterface()) {
+      throw new IllegalArgumentException("ServiceInterface must be an interface.");
+    }
+    else if (Objects.isNull(instance)) {
+      throw new IllegalArgumentException("Instance == null.");
+    }
+    else if (serviceInterface.isInstance(instance)) {
+      ClassInstanceValue<?> result = new ClassInstanceValue<>();
+      result.setServiceInterface(serviceInterface);
+      result.setInstance(instance);
+      return result;
+    }
+    else {
+      throw new IllegalArgumentException("Instance: " + instance + " is not an subclass of: " + serviceInterface);
+    }
+  }
+}

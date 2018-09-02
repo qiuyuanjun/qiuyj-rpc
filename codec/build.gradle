@@ -1,0 +1,4 @@
+dependencies {
+  compile(project(":qrpc-commons"))
+  compile("com.caucho:hessian:4.0.51")
+}
