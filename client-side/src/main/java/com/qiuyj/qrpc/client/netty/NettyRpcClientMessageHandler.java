@@ -3,7 +3,7 @@ package com.qiuyj.qrpc.client.netty;
 import com.qiuyj.qrpc.codec.MessageType;
 import com.qiuyj.qrpc.codec.ResponseInfo;
 import com.qiuyj.qrpc.codec.RpcMessage;
-import com.qiuyj.qrpc.server.ResponseManager;
+import com.qiuyj.qrpc.client.ResponseManager;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 

@@ -1,4 +1,4 @@
-package com.qiuyj.qrpc.server;
+package com.qiuyj.qrpc.client;
 
 import com.qiuyj.qrpc.codec.ResponseInfo;
 
