@@ -1,6 +1,8 @@
 package com.qiuyj.qrpc.client.proxy.jdk;
 
 import com.qiuyj.api.Connection;
+import com.qiuyj.qrpc.client.requestid.LongSequenceRequestId;
+import com.qiuyj.qrpc.client.requestid.RequestId;
 import com.qiuyj.qrpc.codec.MessageType;
 import com.qiuyj.qrpc.codec.RequestInfo;
 import com.qiuyj.qrpc.codec.ResponseInfo;
@@ -8,7 +10,6 @@ import com.qiuyj.qrpc.codec.RpcMessage;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * @author qiuyj
@@ -16,11 +17,20 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class ServiceInstanceJdkProxyHandler implements InvocationHandler {
 
+  /**
+   * id生成对象，所有客户端共享一个
+   */
+  private static RequestId requestId = new LongSequenceRequestId();
+
+  /**
+   * 服务接口
+   */
   private Class<?> serviceInterface;
 
+  /**
+   * 客户端和服务器端之间的连接对象
+   */
   private Connection connection;
-
-  private AtomicLong longSeq = new AtomicLong(0);
 
   public ServiceInstanceJdkProxyHandler(Class<?> serviceInterface, Connection connection) {
     this.serviceInterface = serviceInterface;
@@ -45,12 +55,12 @@ public class ServiceInstanceJdkProxyHandler implements InvocationHandler {
     }
   }
 
-  private RpcMessage getRequestRpcMessage(Class<?> serviceInterface, Method method, Object[] args) {
+  private static RpcMessage getRequestRpcMessage(Class<?> serviceInterface, Method method, Object[] args) {
     RequestInfo rpcRequest = new RequestInfo();
     rpcRequest.setInterfaceName(serviceInterface.getName());
     rpcRequest.setMethodName(method.getName());
     rpcRequest.setMethodParameters(args);
-    rpcRequest.setRequestId(rpcRequest.getInterfaceName() + "#" + longSeq.getAndIncrement());
+    rpcRequest.setRequestId(requestId.nextRequestId());
     RpcMessage rpcMessage = new RpcMessage();
     rpcMessage.setMagic(RpcMessage.MAGIC_NUMBER);
     rpcMessage.setMessageType(MessageType.RPC_REQUEST);
