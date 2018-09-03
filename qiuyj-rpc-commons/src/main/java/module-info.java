@@ -7,4 +7,5 @@ module qrpc.commons {
 
   exports com.qiuyj.qrpc.commons;
   exports com.qiuyj.qrpc.commons.annotation;
+  exports com.qiuyj.qrpc.commons.instantiation;
 }

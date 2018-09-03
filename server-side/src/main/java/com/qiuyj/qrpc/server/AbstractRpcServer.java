@@ -3,12 +3,15 @@ package com.qiuyj.qrpc.server;
 import com.qiuyj.api.server.AbstractServer;
 import com.qiuyj.commons.StringUtils;
 import com.qiuyj.commons.resource.ClassSeeker;
-import com.qiuyj.qrpc.commons.*;
+import com.qiuyj.qrpc.commons.RpcContext;
+import com.qiuyj.qrpc.commons.instantiation.ObjectFactory;
+import com.qiuyj.qrpc.commons.instantiation.ServiceInstanceProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 /**
  * @author qiuyj
@@ -28,6 +31,8 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
 
   private volatile ServiceInstanceProvider serviceInstanceProvider;
 
+  private volatile ObjectFactory objectFactory;
+
   /** 服务扫描路径 */
   private volatile String[] servicePackages;
 
@@ -41,9 +46,13 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
     }
     // 首先扫描所有的包，得到对应的Class对象
     Set<Class<?>> packageClasses = scanServicePackages(servicePackages);
+    // 扫描到的Class对象可能有多种情况，可能是一个接口，也可能是一个服务接口的实现对象
+    // 过滤掉那些有实现对象的服务接口
+    ObjectFactory objectFactory = Objects.isNull(this.objectFactory) ? ObjectFactory.INSTANCE : this.objectFactory;
+    Set<Class<?>> serviceInterfaces = filterImplementation(this, packageClasses, objectFactory);
     ServiceInstanceProvider provider = Objects.isNull(serviceInstanceProvider) ? ServiceInstanceProvider.DEFAULT : serviceInstanceProvider;
     // 将这些扫描到的Class临时保存到serviceToExports集合里面
-    serviceToExports.putAll(resolveServiceInstance(packageClasses, provider));
+    serviceToExports.putAll(resolveServiceInstance(serviceInterfaces, provider));
     // 暴露服务，将服务封装成ServiceProxy对象
     ServiceExporter serviceExporter = new ServiceExporter(serviceToExports.values());
     // TODO 将服务器注册到服务注册中心
@@ -84,6 +93,11 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
   @Override
   public void setServiceInstanceProvider(ServiceInstanceProvider serviceInstanceProvider) {
     this.serviceInstanceProvider = serviceInstanceProvider;
+  }
+
+  @Override
+  public void setObjectFactory(ObjectFactory objectFactory) {
+    this.objectFactory = objectFactory;
   }
 
   @Override
@@ -183,6 +197,38 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
       }
     }
     return tempValues;
+  }
+
+  /**
+   * 过滤掉一些扫描到的服务接口实现
+   */
+  private static Set<Class<?>> filterImplementation(AbstractRpcServer $this, Set<Class<?>> packageClasses, ObjectFactory objectFactory) {
+    Set<Class<?>> interfaces = packageClasses.stream().filter(Class::isInterface).collect(Collectors.toSet());
+    // 如果所有都是服务接口或者没有扫描到服务接口，那么直接返回
+    if (interfaces.size() == 0 || interfaces.size() == packageClasses.size()) {
+      return interfaces;
+    }
+    packageClasses.removeAll(interfaces);
+    List<Class<?>> instantiations = new ArrayList<>();
+    for (Class<?> cls : interfaces) {
+      List<Object> instances = new ArrayList<>();
+      for (Class<?> impl : packageClasses) {
+        if (cls.isAssignableFrom(impl)) {
+          instances.add(objectFactory.newInstance(impl));
+        }
+      }
+      if (instances.size() > 1) {
+        throw new IllegalStateException("Only one implement service instance are allowed.");
+      }
+      else if (instances.size() == 1) {
+        $this.serviceToExports.put(cls, ClassInstanceValue.newInstance(cls, instances.get(0)));
+        instantiations.add(cls);
+      }
+    }
+    if (instantiations.size() > 0) {
+      interfaces.removeAll(instantiations);
+    }
+    return interfaces;
   }
 
 }

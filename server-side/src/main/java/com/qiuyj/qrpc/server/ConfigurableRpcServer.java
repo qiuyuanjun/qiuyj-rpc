@@ -1,6 +1,7 @@
 package com.qiuyj.qrpc.server;
 
-import com.qiuyj.qrpc.commons.ServiceInstanceProvider;
+import com.qiuyj.qrpc.commons.instantiation.ObjectFactory;
+import com.qiuyj.qrpc.commons.instantiation.ServiceInstanceProvider;
 
 /**
  * @author qiuyj
@@ -11,6 +12,8 @@ public interface ConfigurableRpcServer extends RpcServer {
   String PACKAGE_SEPERATOR = ",; \t";
 
   void setServiceInstanceProvider(ServiceInstanceProvider serviceInstanceProvider);
+
+  void setObjectFactory(ObjectFactory objectFactory);
 
   /**
    * 注册需要暴露的服务

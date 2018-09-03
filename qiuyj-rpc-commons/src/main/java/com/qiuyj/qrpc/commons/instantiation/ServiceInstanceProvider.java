@@ -1,4 +1,4 @@
-package com.qiuyj.qrpc.commons;
+package com.qiuyj.qrpc.commons.instantiation;
 
 /**
  * @author qiuyj

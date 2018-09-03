@@ -14,13 +14,4 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface RpcService {
 
-  /**
-   * 服务接口的实现类
-   */
-  Class<?> implementation() default void.class;
-
-  /**
-   * 当被标注了该注解的接口方法调用失败的时候，调用指定的类的对应的方法作为返回值
-   */
-  Class<?> fallback() default void.class;
 }

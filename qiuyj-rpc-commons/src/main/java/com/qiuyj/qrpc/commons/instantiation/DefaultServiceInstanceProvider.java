@@ -1,4 +1,4 @@
-package com.qiuyj.qrpc.commons;
+package com.qiuyj.qrpc.commons.instantiation;
 
 import com.qiuyj.commons.AnnotationUtils;
 import com.qiuyj.commons.ClassUtils;
@@ -52,12 +52,9 @@ public class DefaultServiceInstanceProvider implements ServiceInstanceProvider {
       throw new IllegalStateException("Illegal service interface, must annotated by @" + RpcService.class.getName());
     }
     else {
-      Class<?> cls = anno.implementation();
-      if (cls == Void.TYPE) {
         // 构建实例对象的class名称
-        String instanceClassName = serviceInterface.getPackageName() + packageSuffix + serviceInterface.getSimpleName() + classSuffix;
-        cls = ClassUtils.resolveClassName(instanceClassName, DefaultServiceInstanceProvider.class.getClassLoader());
-      }
+      String instanceClassName = serviceInterface.getPackageName() + packageSuffix + serviceInterface.getSimpleName() + classSuffix;
+      Class<?> cls = ClassUtils.resolveClassName(instanceClassName, DefaultServiceInstanceProvider.class.getClassLoader());
       // 判断是否是接口的子类
       if (!serviceInterface.isAssignableFrom(cls)) {
         throw new IllegalStateException("Service instance: " + cls + " is not an subclass of: " + serviceInterface);
