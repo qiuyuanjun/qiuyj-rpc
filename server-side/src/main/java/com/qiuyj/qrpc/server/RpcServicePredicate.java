@@ -4,6 +4,7 @@ import com.qiuyj.commons.AnnotationUtils;
 import com.qiuyj.qrpc.commons.annotation.RpcService;
 import com.qiuyj.qrpc.server.annotation.RpcServiceImpl;
 
+import java.lang.reflect.Modifier;
 import java.util.function.Predicate;
 
 /**
@@ -22,6 +23,7 @@ public class RpcServicePredicate implements Predicate<Class<?>> {
     // 那么其一定不能是枚举类型，并且一定不能是java虚拟机生成的类（各种内部类），并且一定要被@RpcServiceImpl注解标注
     return cls.isInterface() ?
         !cls.isAnnotation() && AnnotationUtils.hasAnnotation(cls, RpcService.class) :
-        !cls.isEnum() && !cls.isSynthetic() && AnnotationUtils.hasAnnotation(cls, RpcServiceImpl.class);
+        !cls.isEnum() && !Modifier.isAbstract(cls.getModifiers()) && !cls.isSynthetic()
+            && AnnotationUtils.hasAnnotation(cls, RpcServiceImpl.class);
   }
 }
