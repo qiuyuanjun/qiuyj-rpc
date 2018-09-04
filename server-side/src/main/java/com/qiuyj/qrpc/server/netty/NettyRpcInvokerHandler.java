@@ -1,10 +1,8 @@
 package com.qiuyj.qrpc.server.netty;
 
-import com.qiuyj.qrpc.codec.MessageType;
-import com.qiuyj.qrpc.codec.RequestInfo;
-import com.qiuyj.qrpc.codec.ResponseInfo;
-import com.qiuyj.qrpc.codec.RpcMessage;
+import com.qiuyj.qrpc.codec.*;
 import com.qiuyj.qrpc.commons.RpcException;
+import com.qiuyj.qrpc.server.CloseChannelException;
 import com.qiuyj.qrpc.server.ServiceExporter;
 import com.qiuyj.qrpc.server.messagehandler.MessageHandler;
 import com.qiuyj.qrpc.server.messagehandler.RequestInfoMessageHandler;
@@ -13,6 +11,8 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.group.ChannelGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.IOException;
 
 /**
  * @author qiuyj
@@ -71,12 +71,31 @@ class NettyRpcInvokerHandler extends ChannelInboundHandlerAdapter {
     if (cause instanceof RpcException) {
       RpcException rpcException = (RpcException) cause;
       // 业务错误，发送错误信息给客户端
-//      ctx.channel().writeAndFlush();
+
+      ResponseInfo responseInfo = new ResponseInfo();
+      responseInfo.setRequestId(rpcException.getRequestId());
+      responseInfo.setResult(rpcException);
+
+      RpcMessage rpcMessage = new RpcMessage();
+      rpcMessage.setMagic(RpcMessage.MAGIC_NUMBER);
+      rpcMessage.setMessageType(MessageType.RPC_RESPONSE);
+      rpcMessage.setContent(responseInfo);
+
+      ctx.channel().writeAndFlush(rpcMessage);
+    }
+    else if (cause instanceof CloseChannelException) {
+      clients.remove(ctx.channel());
+      ctx.channel().close();
+    }
+    else if (cause instanceof IOException || cause instanceof SerializationException) {
+      LOGGER.error("Error occured in channel: " + ctx.channel().id(), cause);
+      clients.remove(ctx.channel());
+      ctx.channel().close();
     }
     else {
-      LOGGER.error("Error occured in channel: " + ctx.channel().id(), cause);
-      ctx.channel().close();
-      clients.remove(ctx.channel());
+      // 其他的异常，那么记录异常信息
+      LOGGER.error("Errors occured.", cause);
     }
   }
+
 }

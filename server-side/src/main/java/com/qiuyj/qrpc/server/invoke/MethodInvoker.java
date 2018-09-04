@@ -1,7 +1,6 @@
 package com.qiuyj.qrpc.server.invoke;
 
 import com.qiuyj.commons.AnnotationUtils;
-import com.qiuyj.qrpc.commons.RpcException;
 import com.qiuyj.qrpc.commons.annotation.RpcMethod;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,14 +26,11 @@ public class MethodInvoker {
     parseMethod(this);
   }
 
-  public Object invoke(Object obj, Object... args) {
+  public Object invoke(Object obj, Object... args) throws InvocationTargetException {
     try {
       return method.invoke(obj, args);
     } catch (IllegalAccessException e) {
       // ignore, never happen
-    } catch (InvocationTargetException e) {
-      LOGGER.error("Error while executing method: " + method.getName() + ".\nCaused by: " + e, e);
-      throw new RpcException();
     }
     throw new IllegalStateException("Never get here.");
   }

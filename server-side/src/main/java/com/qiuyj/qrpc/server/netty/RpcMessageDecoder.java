@@ -1,10 +1,14 @@
 package com.qiuyj.qrpc.server.netty;
 
-import com.qiuyj.qrpc.codec.*;
-import com.qiuyj.qrpc.commons.RpcException;
+import com.qiuyj.qrpc.codec.Codec;
+import com.qiuyj.qrpc.codec.CodecUtils;
+import com.qiuyj.qrpc.codec.RpcMessage;
+import com.qiuyj.qrpc.server.CloseChannelException;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,6 +18,8 @@ import java.util.Objects;
  * @since 2018-06-22
  */
 public class RpcMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
+
+  private static final Logger LOGGER = LoggerFactory.getLogger(RpcMessageDecoder.class);
 
   @Override
   protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) {
@@ -26,12 +32,14 @@ public class RpcMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
     RpcMessage rpcMessage = codec.decode(b);
     // 验证magic number
     if (rpcMessage.getMagic() != RpcMessage.MAGIC_NUMBER) {
-      throw new RpcException();
+      LOGGER.error("rpc消息的魔数(magic number)不符合要求，可能传输中途被篡改。关闭连接。");
+      throw new CloseChannelException("Magic number is illegal.");
     }
     // 验证正文长度和正文
     else if ((rpcMessage.getContentLength() > 0 && Objects.isNull(rpcMessage.getContent())) ||
         (rpcMessage.getContentLength() == 0 && Objects.nonNull(rpcMessage.getContent()))) {
-      throw new RpcException();
+      LOGGER.error("正文的长度和正文的内容所代表的长度不一致，可能是传输中途被篡改。关闭连接。");
+      throw new CloseChannelException("Content not match content length.");
     }
     else {
       out.add(rpcMessage);

@@ -2,6 +2,7 @@ package com.qiuyj.qrpc.server.messagehandler;
 
 import com.qiuyj.commons.ClassUtils;
 import com.qiuyj.qrpc.codec.RequestInfo;
+import com.qiuyj.qrpc.commons.ErrorReason;
 import com.qiuyj.qrpc.commons.RpcException;
 import com.qiuyj.qrpc.server.ServiceExporter;
 import com.qiuyj.qrpc.server.invoke.ServiceProxy;
@@ -29,12 +30,12 @@ public class RequestInfoMessageHandler extends AbstractMessageHandler<RequestInf
       interfaceCls = ClassUtils.classForName(interfaceName, RequestInfoMessageHandler.class.getClassLoader());
     }
     catch (ClassNotFoundException e) {
-      throw new RpcException();
+      throw new RpcException(message.getRequestId(), ErrorReason.SERVICE_NOT_FOUND);
     }
     ServiceProxy serviceProxy = serviceExporter.getServiceProxy(interfaceCls);
     if (Objects.isNull(serviceProxy)) {
-      throw new RpcException();
+      throw new RpcException(message.getRequestId(), ErrorReason.SERVICE_NOT_FOUND);
     }
-    return serviceProxy.invoke(message.getMethodName(), message.getMethodParameters());
+    return serviceProxy.call(message.getRequestId(), message.getMethodName(), message.getMethodParameters());
   }
 }

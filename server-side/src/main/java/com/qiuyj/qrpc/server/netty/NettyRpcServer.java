@@ -41,7 +41,6 @@ public class NettyRpcServer extends AbstractRpcServer {
     serverChannel = (NioServerSocketChannel) channelFuture.channel();
     // 得到所有的客户端长连接
     clients = ((NettyRpcChannelInitializer) nettyServerBootstrap.config().childHandler()).getClients();
-    // 服务器端开启心跳检测机制
   }
 
   @Override

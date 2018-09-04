@@ -5,7 +5,7 @@ import com.caucho.hessian.io.Hessian2Output;
 import com.qiuyj.qrpc.codec.RequestInfo;
 import com.qiuyj.qrpc.codec.RequestResponseDispatcherCodec;
 import com.qiuyj.qrpc.codec.ResponseInfo;
-import com.qiuyj.qrpc.commons.RpcException;
+import com.qiuyj.qrpc.codec.SerializationException;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -55,7 +55,7 @@ public class Hessian2Codec extends RequestResponseDispatcherCodec {
       o = in.readObject(clz);
     }
     catch (IOException e) {
-      throw new RpcException(e);
+      throw new SerializationException(e);
     }
     return clz.cast(o);
   }
@@ -79,7 +79,7 @@ public class Hessian2Codec extends RequestResponseDispatcherCodec {
       return out.toByteArray();
     }
     catch (IOException e) {
-      throw new RpcException(e);
+      throw new SerializationException(e);
     }
     finally {
       try {
