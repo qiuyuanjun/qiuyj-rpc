@@ -71,7 +71,6 @@ class NettyRpcInvokerHandler extends ChannelInboundHandlerAdapter {
     if (cause instanceof RpcException) {
       RpcException rpcException = (RpcException) cause;
       // 业务错误，发送错误信息给客户端
-
       ResponseInfo responseInfo = new ResponseInfo();
       responseInfo.setRequestId(rpcException.getRequestId());
       responseInfo.setResult(rpcException);

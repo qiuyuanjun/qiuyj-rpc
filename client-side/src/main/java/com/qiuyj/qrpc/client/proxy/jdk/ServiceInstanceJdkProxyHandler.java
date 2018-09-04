@@ -61,10 +61,12 @@ public class ServiceInstanceJdkProxyHandler implements InvocationHandler {
     rpcRequest.setMethodName(method.getName());
     rpcRequest.setMethodParameters(args);
     rpcRequest.setRequestId(requestId.nextRequestId());
+
     RpcMessage rpcMessage = new RpcMessage();
     rpcMessage.setMagic(RpcMessage.MAGIC_NUMBER);
     rpcMessage.setMessageType(MessageType.RPC_REQUEST);
     rpcMessage.setContent(rpcRequest);
+
     return rpcMessage;
   }
 }

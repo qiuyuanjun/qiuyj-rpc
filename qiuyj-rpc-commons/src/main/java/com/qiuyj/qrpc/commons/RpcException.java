@@ -12,12 +12,30 @@ public class RpcException extends RuntimeException implements RequestIdCapable {
 
   private ErrorReason errorReason;
 
+  public RpcException() {
+    super();
+  }
+
   public RpcException(String requestId, ErrorReason errorReason) {
+    super();
     this.requestId = requestId;
+    this.errorReason = errorReason;
   }
 
   @Override
   public String getRequestId() {
     return requestId;
+  }
+
+  public void setRequestId(String requestId) {
+    this.requestId = requestId;
+  }
+
+  public ErrorReason getErrorReason() {
+    return errorReason;
+  }
+
+  public void setErrorReason(ErrorReason errorReason) {
+    this.errorReason = errorReason;
   }
 }

@@ -13,4 +13,6 @@ public interface TestService {
   @RpcMethod
   String sayHello();
 
+  void notExists();
+
 }

@@ -2,6 +2,8 @@ package com.qiuyj.qrpc.codec.hessian;
 
 import com.caucho.hessian.io.Hessian2Input;
 import com.caucho.hessian.io.Hessian2Output;
+import com.caucho.hessian.io.HessianSerializerInput;
+import com.caucho.hessian.io.HessianSerializerOutput;
 import com.qiuyj.qrpc.codec.RequestInfo;
 import com.qiuyj.qrpc.codec.RequestResponseDispatcherCodec;
 import com.qiuyj.qrpc.codec.ResponseInfo;
@@ -19,7 +21,7 @@ public class Hessian2Codec extends RequestResponseDispatcherCodec {
 
   @Override
   protected RequestInfo decodeRequestInfo(byte[] b, int startPos, int length) {
-    Hessian2Input hessian2Input = new Hessian2Input(new ByteArrayInputStream(b, startPos, length));
+    Hessian2Input hessian2Input = new HessianSerializerInput(new ByteArrayInputStream(b, startPos, length));
     try {
       return decodeObject(hessian2Input, RequestInfo.class);
     }
@@ -35,7 +37,7 @@ public class Hessian2Codec extends RequestResponseDispatcherCodec {
 
   @Override
   protected ResponseInfo decodeResponseInfo(byte[] b, int startPos, int length) {
-    Hessian2Input hessian2Input = new Hessian2Input(new ByteArrayInputStream(b, startPos, length));
+    Hessian2Input hessian2Input = new HessianSerializerInput(new ByteArrayInputStream(b, startPos, length));
     try {
       return decodeObject(hessian2Input, ResponseInfo.class);
     }
@@ -72,7 +74,7 @@ public class Hessian2Codec extends RequestResponseDispatcherCodec {
 
   private static byte[] encodeObject(Object obj) {
     ByteArrayOutputStream out = new ByteArrayOutputStream(4096);
-    Hessian2Output hessian2Output = new Hessian2Output(out);
+    Hessian2Output hessian2Output = new HessianSerializerOutput(out);
     try {
       hessian2Output.writeObject(obj);
       hessian2Output.flush();

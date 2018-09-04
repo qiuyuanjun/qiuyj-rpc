@@ -6,6 +6,7 @@ import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author qiuyj
@@ -48,7 +49,7 @@ public class ResponseManager {
     holder.setLatch(latch);
     responseHolderMap.put(requestId, holder);
     try {
-      latch.await();
+      latch.await(5L, TimeUnit.SECONDS);
     }
     catch (InterruptedException e) {
       Thread.currentThread().interrupt();
