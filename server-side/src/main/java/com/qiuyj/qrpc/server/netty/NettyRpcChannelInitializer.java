@@ -30,6 +30,8 @@ public class NettyRpcChannelInitializer extends ChannelInitializer<SocketChannel
     ch.pipeline().addLast("rpcMessageDecoder", new RpcMessageDecoder());
     // 消息编码器
     ch.pipeline().addLast("rpcMessageEncoder", new RpcMessageEncoder());
+    // 心跳服务器端处理器
+    ch.pipeline().addLast("heartbeatServerHandler", new HeartbeatServerHandler());
     // rpc调用处理器
     ch.pipeline().addLast("rpcMessageHandler", new NettyRpcInvokerHandler(clients, serviceExporter));
   }

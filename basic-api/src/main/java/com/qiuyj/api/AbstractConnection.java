@@ -21,6 +21,11 @@ public abstract class AbstractConnection implements Connection {
   /** 最大的空闲时间，默认30秒 */
   private long maxWriterIdleNanoTime = TimeUnit.SECONDS.toNanos(30L);
 
+  /**
+   * 心跳标志，如果发送这个，意味着子类需要发送心跳包
+   */
+  protected Object heartbeat = new Object();
+
   protected AbstractConnection() {
 //    initialize();
   }
@@ -69,8 +74,8 @@ public abstract class AbstractConnection implements Connection {
                 (ticksInNanos() - AbstractConnection.this.lastWriteTime);
       if (nextDelay <= 0) {
         // 写超时
-        // TODO 发送心跳包
-        AbstractConnection.this.send(null);
+        // 发送心跳标志，提醒子类发送心跳包
+        AbstractConnection.this.send(heartbeat);
         // 重置定时器
         AbstractConnection.schedule(this, AbstractConnection.this.maxWriterIdleNanoTime);
       }

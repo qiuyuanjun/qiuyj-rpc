@@ -32,6 +32,7 @@ public class ResponseManager {
     holder.setResponse(result);
     CountDownLatch latch = holder.getLatch();
     if (Objects.isNull(latch)) {
+      responseHolderMap.remove(result.getRequestId());
       throw new IllegalStateException("Countdown latch not set yet.");
     }
     latch.countDown();

@@ -36,7 +36,14 @@ public class NettyConnection extends AbstractConnection {
       // 服务器端已经返回结果，那么将结果设置到ResponseManager里面
       return ResponseManager.INSTANCE.getResult(requestId);
     }
-    throw new IllegalStateException("Unexpect response data type.");
+    // 判断heartbeat情况
+    else if (message == heartbeat) {
+      // TODO 发送心跳逻辑
+      return null;
+    }
+    else {
+      throw new IllegalStateException("Unexpect request data type.");
+    }
   }
 
   @Override
