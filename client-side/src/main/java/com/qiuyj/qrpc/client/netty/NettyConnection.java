@@ -6,6 +6,8 @@ import com.qiuyj.qrpc.codec.RpcMessage;
 import com.qiuyj.qrpc.client.ResponseManager;
 import io.netty.channel.socket.SocketChannel;
 
+import java.util.concurrent.TimeoutException;
+
 /**
  * @author qiuyj
  * @since 2018-08-30
@@ -25,11 +27,16 @@ public class NettyConnection extends AbstractConnection {
       String requestId = ((RequestInfo) ((RpcMessage) message).getContent()).getRequestId();
       channel.writeAndFlush(message);
       // 同步等待结果
-      ResponseManager.INSTANCE.waitForResponseResult(requestId);
+      try {
+        ResponseManager.INSTANCE.waitForResponseResult(requestId);
+      }
+      catch (TimeoutException e) {
+        throw new IllegalStateException(e);
+      }
       // 服务器端已经返回结果，那么将结果设置到ResponseManager里面
       return ResponseManager.INSTANCE.getResult(requestId);
     }
-    return null;
+    throw new IllegalStateException("Unexpect response data type.");
   }
 
   @Override

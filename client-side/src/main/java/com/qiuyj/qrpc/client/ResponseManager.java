@@ -3,10 +3,7 @@ package com.qiuyj.qrpc.client;
 import com.qiuyj.qrpc.codec.ResponseInfo;
 
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * @author qiuyj
@@ -43,16 +40,27 @@ public class ResponseManager {
   /**
    * 等待服务器端返回结果
    */
-  public void waitForResponseResult(String requestId) {
+  public void waitForResponseResult(String requestId) throws TimeoutException {
     CountDownLatch latch = new CountDownLatch(1);
     ResponseHolder holder = new ResponseHolder();
     holder.setLatch(latch);
     responseHolderMap.put(requestId, holder);
     try {
+      // 如果此时，从netty服务器异步返回数据的时候抛出了异常
+      // 那么这里将无法唤醒
+      // 所以这里设置一个最长的阻塞时间5秒
+      // TODO timeout通过用户配置的读取
       latch.await(5L, TimeUnit.SECONDS);
     }
     catch (InterruptedException e) {
       Thread.currentThread().interrupt();
+    }
+    // 这里需要检测是否有值，如果没有值
+    // 那么表明抛出了异常
+    // 此时这里需要手动向外部抛出一个异常，并且将当前的responseHolder移除
+    if (Objects.isNull(responseHolderMap.get(requestId).getResponse())) {
+      responseHolderMap.remove(requestId);
+      throw new TimeoutException("Read from server timeout. May be occured exception.");
     }
   }
 
