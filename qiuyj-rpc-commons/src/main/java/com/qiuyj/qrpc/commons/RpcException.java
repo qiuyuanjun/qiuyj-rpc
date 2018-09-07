@@ -10,16 +10,23 @@ public class RpcException extends RuntimeException implements RequestIdCapable {
 
   private String requestId;
 
-  private ErrorReason errorReason;
-
   public RpcException() {
     super();
   }
 
   public RpcException(String requestId, ErrorReason errorReason) {
-    super();
+    super(getErrorMessage(errorReason));
     this.requestId = requestId;
-    this.errorReason = errorReason;
+  }
+
+  private static String getErrorMessage(ErrorReason errorReason) {
+    return new StringBuilder(errorReason.toString())
+        .append("[")
+        .append(errorReason.getErrorCode())
+        .append(":")
+        .append(errorReason.getErrorMessage())
+        .append("]")
+        .toString();
   }
 
   @Override
@@ -31,11 +38,4 @@ public class RpcException extends RuntimeException implements RequestIdCapable {
     this.requestId = requestId;
   }
 
-  public ErrorReason getErrorReason() {
-    return errorReason;
-  }
-
-  public void setErrorReason(ErrorReason errorReason) {
-    this.errorReason = errorReason;
-  }
 }
