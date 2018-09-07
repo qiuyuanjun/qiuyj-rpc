@@ -16,14 +16,24 @@ public class ObjectMethods {
   /** 单例对象 */
   public static final ObjectMethods INSTANCE = new ObjectMethods();
 
-  /** Object的方法列表 */
-  private final List<ObjectMethod> objectMethods;
+  /** 在当前的rpc环境下，Object的可以通过服务器端调用的方法列表 */
+  private final List<ObjectMethod> canInvokeObjectMethods;
+
+  /** 在当前rpc环境下，Object的不可以通过服务器端调用，并且客户端也不可以调用的方法列表 */
+  private final List<ObjectMethod> canNotInvokeObjectMethods;
 
   private ObjectMethods() {
-    objectMethods = new ArrayList<>(3);
-    objectMethods.add(new Equals());
-    objectMethods.add(new ToString());
-    objectMethods.add(new HashCode());
+    canInvokeObjectMethods = new ArrayList<>(3);
+    canInvokeObjectMethods.add(new Equals());
+    canInvokeObjectMethods.add(new ToString());
+    canInvokeObjectMethods.add(new HashCode());
+
+    canNotInvokeObjectMethods = new ArrayList<>(5);
+    canNotInvokeObjectMethods.add(new Notify());
+    canNotInvokeObjectMethods.add(new NotifyAll());
+    canNotInvokeObjectMethods.add(new Wait());
+    canNotInvokeObjectMethods.add(new WaitOfOneParameter());
+    canNotInvokeObjectMethods.add(new WaitOfTwoParameter());
   }
 
   /**
@@ -37,7 +47,7 @@ public class ObjectMethods {
       return true;
     }
     String methodSign = MethodSignUtils.getMethodSign(method);
-    return objectMethods.stream().anyMatch(objMethod -> objMethod.methodSign.equals(methodSign));
+    return canInvokeObjectMethods.stream().anyMatch(objMethod -> objMethod.methodSign.equals(methodSign));
   }
 
   /**
@@ -49,7 +59,7 @@ public class ObjectMethods {
   public boolean isObjectMethod(String methodName, Object... args) {
     Objects.requireNonNull(methodName, "methodName == null");
     String methodSign = MethodSignUtils.getMethodSign(methodName, args);
-    return objectMethods.stream().anyMatch(objMethod -> objMethod.methodSign.equals(methodSign));
+    return canInvokeObjectMethods.stream().anyMatch(objMethod -> objMethod.methodSign.equals(methodSign));
   }
 
   /**
@@ -63,7 +73,7 @@ public class ObjectMethods {
       return null;
     }
     String methodSign = MethodSignUtils.getMethodSign(methodName, args);
-    return objectMethods.stream()
+    return canInvokeObjectMethods.stream()
         .filter(x$i -> x$i.methodSign.equals(methodSign))
         .findFirst()
         .orElse(null);
@@ -75,12 +85,40 @@ public class ObjectMethods {
    * @return {@code ObjectMethod}对象
    */
   public ObjectMethod getObjectMethod(String methodSign) {
-    for (ObjectMethod objMethod : objectMethods) {
+    for (ObjectMethod objMethod : canInvokeObjectMethods) {
       if (objMethod.methodSign.equals(methodSign)) {
         return objMethod;
       }
     }
     return null;
+  }
+
+  /**
+   * 判断当前方法是否是不可执行的Object的方法
+   * @param method 方法
+   * @return 如果是，返回{@code true}，否则返回{@code false}
+   */
+  public boolean isNotExecutableObjectMethod(Method method) {
+    Objects.requireNonNull(method, "method == null");
+    if (method.getDeclaringClass() != Object.class) {
+      return false;
+    }
+    String methodSign = MethodSignUtils.getMethodSign(method);
+    return canNotInvokeObjectMethods.stream().anyMatch(x$i -> x$i.methodSign.equals(methodSign));
+  }
+
+  /**
+   * 判断当前方法是否是不可执行的Object的方法
+   * @param methodSign 方法签名
+   * @return 如果是，返回{@code true}，否则返回{@code false}
+   */
+  public boolean isNotExecutableObjectMethod(String methodSign) {
+    for (ObjectMethod objMethod : canNotInvokeObjectMethods) {
+      if (objMethod.methodSign.equals(methodSign)) {
+        return true;
+      }
+    }
+    return false;
   }
 
   public static abstract class ObjectMethod {
@@ -134,6 +172,53 @@ public class ObjectMethods {
     @Override
     public String invoke(Object instance, Object... args) {
       return instance.toString();
+    }
+  }
+
+  private static abstract class NonInvokeObjectMethod extends ObjectMethod {
+
+    protected NonInvokeObjectMethod(String methodSign) {
+      super(methodSign);
+    }
+
+    @Override
+    public String invoke(Object instance, Object... args) {
+      throw new UnsupportedOperationException("Method " + methodSign + " that in rpc environment is not executable.");
+    }
+  }
+
+  private static final class Notify extends NonInvokeObjectMethod {
+
+    protected Notify() {
+      super("notify()");
+    }
+  }
+
+  private static final class NotifyAll extends NonInvokeObjectMethod {
+
+    protected NotifyAll() {
+      super("notifyAll()");
+    }
+  }
+
+  private static final class Wait extends NonInvokeObjectMethod {
+
+    protected Wait() {
+      super("wait()");
+    }
+  }
+
+  private static final class WaitOfOneParameter extends NonInvokeObjectMethod {
+
+    protected WaitOfOneParameter() {
+      super("wait(J)");
+    }
+  }
+
+  private static final class WaitOfTwoParameter extends NonInvokeObjectMethod {
+
+    protected WaitOfTwoParameter() {
+      super("wait(JI)");
     }
   }
 }

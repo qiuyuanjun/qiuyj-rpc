@@ -39,6 +39,20 @@ public class ServiceInstanceJdkProxyHandler implements InvocationHandler {
 
   @Override
   public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    // 通过实验发现，如果是调用Object.notify,Object.notifyAll,Object.wait方法
+    // 那么将不会执行当前的当前的动态代理的invoke逻辑
+
+    /*String methodSign = MethodSignUtils.getMethodSign(method);
+    // 判断当前调用的方法是否是不可执行的Object方法
+    if (ObjectMethods.INSTANCE.isNotExecutableObjectMethod(method)) {
+      throw new IllegalStateException("Method " + method.getName() + " that in rpc environment is not executable.");
+    }
+    // 判断当前调用的方法是否是Object.getClass方法
+    else if (ObjectMethods.INSTANCE.isNotExecutableObjectMethod(methodSign)) {
+      // 如果是，那么直接将接口返回
+      return serviceInterface;
+    }*/
+
     RpcMessage rpcMessage = getRequestRpcMessage(serviceInterface, method, args);
     Object result = connection.send(rpcMessage);
     if (result instanceof ResponseInfo) {

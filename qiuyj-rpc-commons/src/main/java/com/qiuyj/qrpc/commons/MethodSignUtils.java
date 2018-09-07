@@ -2,7 +2,6 @@ package com.qiuyj.qrpc.commons;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
-import java.util.StringJoiner;
 
 /**
  * @author qiuyj
@@ -63,10 +62,10 @@ public abstract class MethodSignUtils {
     StringBuilder methodSignBuilder = new StringBuilder(methodName);
     methodSignBuilder.append("(");
     if (Objects.nonNull(args)) {
-      StringJoiner joiner = new StringJoiner(",");
+      StringBuilder joiner = new StringBuilder();
       for (int i = 0; i < args.length; i++) {
         replaceBoxingTypeToPrimitiveType(args, i);
-        joiner.add(getTypeDescriptor(args[i]));
+        joiner.append(getTypeDescriptor(args[i]));
       }
       methodSignBuilder.append(joiner);
     }
