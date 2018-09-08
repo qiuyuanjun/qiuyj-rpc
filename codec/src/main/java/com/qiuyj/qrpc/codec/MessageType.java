@@ -7,6 +7,11 @@ package com.qiuyj.qrpc.codec;
 public enum MessageType {
 
   /**
+   * 错误类型的返回
+   */
+  ERROR_RESPONSE((byte) 0x01),
+
+  /**
    * rpc请求类型
    */
   RPC_REQUEST((byte) 0x1A),
@@ -49,7 +54,7 @@ public enum MessageType {
    * @return {@code true}是响应报文类型，{@code false}不是响应报文类型
    */
   public boolean isResponseType() {
-    return this == RPC_RESPONSE || this == HEARTBEAT_RESPONSE;
+    return this == RPC_RESPONSE || this == HEARTBEAT_RESPONSE || this == ERROR_RESPONSE;
   }
 
   public static MessageType ofByte(byte b) {

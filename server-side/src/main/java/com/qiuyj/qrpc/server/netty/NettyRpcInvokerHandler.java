@@ -73,11 +73,11 @@ class NettyRpcInvokerHandler extends ChannelInboundHandlerAdapter {
       // 业务错误，发送错误信息给客户端
       ResponseInfo responseInfo = new ResponseInfo();
       responseInfo.setRequestId(rpcException.getRequestId());
-      responseInfo.setResult(rpcException);
+      responseInfo.setResult(rpcException.getErrorReason());
 
       RpcMessage rpcMessage = new RpcMessage();
       rpcMessage.setMagic(RpcMessage.MAGIC_NUMBER);
-      rpcMessage.setMessageType(MessageType.RPC_RESPONSE);
+      rpcMessage.setMessageType(MessageType.ERROR_RESPONSE);
       rpcMessage.setContent(responseInfo);
 
       ctx.channel().writeAndFlush(rpcMessage);

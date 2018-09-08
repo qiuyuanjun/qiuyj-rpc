@@ -6,27 +6,20 @@ package com.qiuyj.qrpc.commons;
  */
 public class RpcException extends RuntimeException implements RequestIdCapable {
 
-  private static final long serialVersionUID = -5791393840852493742L;
+  private static final long serialVersionUID = 8575711508645312258L;
 
   private String requestId;
+
+  private ErrorReason errorReason;
 
   public RpcException() {
     super();
   }
 
   public RpcException(String requestId, ErrorReason errorReason) {
-    super(getErrorMessage(errorReason));
+    super();
     this.requestId = requestId;
-  }
-
-  private static String getErrorMessage(ErrorReason errorReason) {
-    return new StringBuilder(errorReason.toString())
-        .append("[")
-        .append(errorReason.getErrorCode())
-        .append(":")
-        .append(errorReason.getErrorMessage())
-        .append("]")
-        .toString();
+    this.errorReason = errorReason;
   }
 
   @Override
@@ -38,4 +31,11 @@ public class RpcException extends RuntimeException implements RequestIdCapable {
     this.requestId = requestId;
   }
 
+  public ErrorReason getErrorReason() {
+    return errorReason;
+  }
+
+  public void setErrorReason(ErrorReason errorReason) {
+    this.errorReason = errorReason;
+  }
 }

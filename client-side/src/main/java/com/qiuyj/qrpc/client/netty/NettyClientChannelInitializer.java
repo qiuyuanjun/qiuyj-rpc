@@ -19,8 +19,13 @@ public class NettyClientChannelInitializer extends ChannelInitializer<SocketChan
 
   @Override
   protected void initChannel(SocketChannel ch) {
+    // rpc消息解码器
     ch.pipeline().addLast("rpcMessageDecoder", new RpcMessageDecoder());
+    // rpc消息编码器
     ch.pipeline().addLast("rpcMessageEncoder", new RpcMessageEncoder());
+    // rpc错误消息处理器
+    ch.pipeline().addLast("rpcErrorMessageHandler", new ErrorResponseHandler());
+    // rpc正常消息处理器
     ch.pipeline().addLast("rpcClientMessageHandler", new NettyRpcClientMessageHandler(nettyConnection));
   }
 }

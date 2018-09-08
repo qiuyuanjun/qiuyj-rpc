@@ -26,4 +26,17 @@ public enum ErrorReason {
   public String getErrorMessage() {
     return errorMessage;
   }
+
+  /**
+   * 得到错误信息
+   */
+  public String toErrorString() {
+    return new StringBuilder(this.toString())
+        .append("[")
+        .append(this.getErrorCode())
+        .append(":")
+        .append(this.getErrorMessage())
+        .append("]")
+        .toString();
+  }
 }
