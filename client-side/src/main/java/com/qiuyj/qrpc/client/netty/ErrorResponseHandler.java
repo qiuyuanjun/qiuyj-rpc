@@ -1,7 +1,7 @@
 package com.qiuyj.qrpc.client.netty;
 
 import com.qiuyj.qrpc.client.ResponseManager;
-import com.qiuyj.qrpc.client.RpcResponseErrorException;
+import com.qiuyj.qrpc.client.RpcErrorResponseException;
 import com.qiuyj.qrpc.codec.MessageType;
 import com.qiuyj.qrpc.codec.ResponseInfo;
 import com.qiuyj.qrpc.codec.RpcMessage;
@@ -21,7 +21,7 @@ public class ErrorResponseHandler extends ChannelInboundHandlerAdapter {
     RpcMessage rpcMessage = (RpcMessage) msg;
     if (rpcMessage.getMessageType() == MessageType.ERROR_RESPONSE) {
       ResponseInfo info = (ResponseInfo) rpcMessage.getContent();
-      info.setResult(new RpcResponseErrorException((ErrorReason) info.getResult()));
+      info.setResult(new RpcErrorResponseException((ErrorReason) info.getResult()));
       ResponseManager.INSTANCE.done(info);
     }
     else {

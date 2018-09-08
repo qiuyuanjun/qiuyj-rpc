@@ -6,11 +6,11 @@ import com.qiuyj.qrpc.commons.ErrorReason;
  * @author qiuyj
  * @since 2018-09-08
  */
-public class RpcResponseErrorException extends RuntimeException {
+public class RpcErrorResponseException extends RuntimeException {
 
   private static final long serialVersionUID = 8264304108947614625L;
 
-  public RpcResponseErrorException(ErrorReason errorReason) {
+  public RpcErrorResponseException(ErrorReason errorReason) {
     super(errorReason.toErrorString());
   }
 }
