@@ -15,4 +15,6 @@ public interface TestService {
 
   void notExists();
 
+  TestService clone();
+
 }

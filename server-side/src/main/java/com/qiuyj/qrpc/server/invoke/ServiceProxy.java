@@ -36,7 +36,12 @@ public class ServiceProxy {
     // 1.判断当前执行的方法是否是Object的方法或者重载的Object的方法
     ObjectMethods.ObjectMethod objMethod = ObjectMethods.INSTANCE.getObjectMethod(methodSign);
     if (Objects.nonNull(objMethod)) {
-      return objMethod.invoke(serviceInstance, args);
+      try {
+        return objMethod.invoke(serviceInstance, args);
+      }
+      catch (Exception e) {
+        throw new RpcException(requestId, ErrorReason.EXECUTE_SERVICE_ERROR);
+      }
     }
     // 2.如果不是Object的方法，那么得到对应的MethodInvoker对象
     MethodInvoker invoker = methods.get(methodSign);

@@ -2,6 +2,7 @@ package com.qiuyj.qrpc.commons;
 
 import com.qiuyj.commons.StringUtils;
 
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,10 +24,11 @@ public class ObjectMethods {
   private final List<ObjectMethod> canNotInvokeObjectMethods;
 
   private ObjectMethods() {
-    canInvokeObjectMethods = new ArrayList<>(3);
+    canInvokeObjectMethods = new ArrayList<>(4);
     canInvokeObjectMethods.add(new Equals());
     canInvokeObjectMethods.add(new ToString());
     canInvokeObjectMethods.add(new HashCode());
+    canInvokeObjectMethods.add(new Clone());
 
     canNotInvokeObjectMethods = new ArrayList<>(5);
     canNotInvokeObjectMethods.add(new Notify());
@@ -136,7 +138,7 @@ public class ObjectMethods {
      * @param args 参数
      * @return 对应的方法返回值
      */
-    public abstract Object invoke(Object instance, Object... args);
+    public abstract Object invoke(Object instance, Object... args) throws Exception;
   }
 
   private static final class Equals extends ObjectMethod {
@@ -172,6 +174,30 @@ public class ObjectMethods {
     @Override
     public String invoke(Object instance, Object... args) {
       return instance.toString();
+    }
+  }
+
+  private static final class Clone extends ObjectMethod {
+
+    protected Clone() {
+      super("clone()");
+    }
+
+    @Override
+    public Object invoke(Object instance, Object... args) throws InvocationTargetException, IllegalAccessException {
+      // 由于clone方法比较特殊，这里需要通过反射调用
+      Method cloneMethod = null;
+      try {
+        cloneMethod = instance.getClass().getDeclaredMethod("clone");
+      } catch (NoSuchMethodException e) {
+        // ignore
+        // 如果能够调用clone方法，那么表明rpc接口一定重新声明了clone方法
+        // 所以这里这个异常可以直接忽略
+      }
+      if (Objects.nonNull(cloneMethod)) {
+        return cloneMethod.invoke(instance, args);
+      }
+      throw new IllegalStateException("Never get here.");
     }
   }
 
