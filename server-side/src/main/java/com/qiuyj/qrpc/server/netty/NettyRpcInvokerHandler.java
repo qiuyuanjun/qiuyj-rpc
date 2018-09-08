@@ -1,6 +1,6 @@
 package com.qiuyj.qrpc.server.netty;
 
-import com.qiuyj.qrpc.codec.*;
+import com.qiuyj.qrpc.codec.SerializationException;
 import com.qiuyj.qrpc.commons.RpcException;
 import com.qiuyj.qrpc.commons.protocol.MessageType;
 import com.qiuyj.qrpc.commons.protocol.RequestInfo;
@@ -13,8 +13,8 @@ import com.qiuyj.qrpc.server.messagehandler.RequestInfoMessageHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.group.ChannelGroup;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.io.IOException;
 
@@ -24,7 +24,7 @@ import java.io.IOException;
  */
 class NettyRpcInvokerHandler extends ChannelInboundHandlerAdapter {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(NettyRpcInvokerHandler.class);
+  private static final InternalLogger LOGGER = InternalLoggerFactory.getInstance(NettyRpcInvokerHandler.class);
 
   private final ChannelGroup clients;
 

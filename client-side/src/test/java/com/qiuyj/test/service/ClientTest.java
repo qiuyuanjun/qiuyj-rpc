@@ -20,6 +20,5 @@ public class ClientTest {
     System.out.println(testService.sayHello());
     System.out.println(testService.hashCode());
     System.out.println(testService.toString());
-    System.out.println(testService.clone());
   }
 }
