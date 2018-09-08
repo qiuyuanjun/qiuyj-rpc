@@ -1,10 +1,16 @@
 package com.qiuyj.qrpc.client.netty;
 
 import com.qiuyj.api.AbstractConnection;
-import com.qiuyj.qrpc.codec.RequestInfo;
-import com.qiuyj.qrpc.codec.RpcMessage;
+import com.qiuyj.api.HealthState;
+import com.qiuyj.api.client.Client;
+import com.qiuyj.qrpc.client.requestid.HeartbeatRequestId;
+import com.qiuyj.qrpc.commons.protocol.RequestInfo;
+import com.qiuyj.qrpc.commons.protocol.RpcMessage;
 import com.qiuyj.qrpc.client.ResponseManager;
+import com.qiuyj.qrpc.commons.protocol.heartbeat.HeartbeatFactory;
 import io.netty.channel.socket.SocketChannel;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.util.concurrent.TimeoutException;
 
@@ -14,11 +20,39 @@ import java.util.concurrent.TimeoutException;
  */
 public class NettyConnection extends AbstractConnection {
 
+  private static final InternalLogger LOGGER = InternalLoggerFactory.getInstance(NettyConnection.class);
+
   /** 与服务器之间的连接通道（netty） */
   private SocketChannel channel;
 
-  public NettyConnection(SocketChannel channel) {
+  public NettyConnection(Client client, SocketChannel channel) {
+    super(client);
     this.channel = channel;
+  }
+
+  @Override
+  protected HealthState healthCheck() {
+    String requestId = HeartbeatRequestId.INSTANCE.nextRequestId();
+    // 向服务器端发送心跳包
+    channel.writeAndFlush(HeartbeatFactory.getRequestHeartbeat(requestId));
+    try {
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug("Sending heartbeat packet...");
+      }
+      ResponseManager.INSTANCE.waitForResponseResult(requestId);
+    }
+    catch (TimeoutException e) {
+      // 表明当前connection已经和远程服务器断开连接
+      // 那么就需要重新连接远程服务器
+      if (LOGGER.isInfoEnabled()) {
+        LOGGER.info("Heartbeat response timeout. Reconnect remote server.");
+      }
+      return HealthState.UNHEALTH;
+    }
+    // 判断服务器端心跳返回的对象是否是pong
+    String pong = ResponseManager.INSTANCE.getResult(requestId).getResult().toString();
+    // 返回的不是pong，那么也表示不是健康状态
+    return HeartbeatFactory.PONG.equals(pong) ? HealthState.HEALTH : HealthState.UNHEALTH;
   }
 
   @Override
@@ -36,11 +70,6 @@ public class NettyConnection extends AbstractConnection {
       // 服务器端已经返回结果，那么将结果设置到ResponseManager里面
       return ResponseManager.INSTANCE.getResult(requestId);
     }
-    // 判断heartbeat情况
-    else if (message == heartbeat) {
-      // TODO 发送心跳逻辑
-      return null;
-    }
     else {
       throw new IllegalStateException("Unexpect request data type.");
     }
@@ -52,8 +81,8 @@ public class NettyConnection extends AbstractConnection {
   }
 
   // ------ for internal useage ------
-  NettyConnection() {
-
+  NettyConnection(Client client) {
+    super(client);
   }
 
   void setSocketChannel(SocketChannel socketChannel) {

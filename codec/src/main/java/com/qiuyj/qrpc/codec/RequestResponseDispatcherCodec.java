@@ -1,5 +1,9 @@
 package com.qiuyj.qrpc.codec;
 
+import com.qiuyj.qrpc.commons.protocol.RequestInfo;
+import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
+import com.qiuyj.qrpc.commons.protocol.RpcMessage;
+
 /**
  * @author qiuyj
  * @since 2018-06-21

@@ -1,9 +1,9 @@
 package com.qiuyj.qrpc.client.netty;
 
 import com.qiuyj.qrpc.client.ResponseManager;
-import com.qiuyj.qrpc.codec.MessageType;
-import com.qiuyj.qrpc.codec.ResponseInfo;
-import com.qiuyj.qrpc.codec.RpcMessage;
+import com.qiuyj.qrpc.commons.protocol.MessageType;
+import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
+import com.qiuyj.qrpc.commons.protocol.RpcMessage;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.internal.logging.InternalLogger;

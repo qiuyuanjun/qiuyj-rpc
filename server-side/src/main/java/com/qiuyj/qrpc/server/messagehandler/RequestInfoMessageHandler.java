@@ -1,7 +1,7 @@
 package com.qiuyj.qrpc.server.messagehandler;
 
 import com.qiuyj.commons.ClassUtils;
-import com.qiuyj.qrpc.codec.RequestInfo;
+import com.qiuyj.qrpc.commons.protocol.RequestInfo;
 import com.qiuyj.qrpc.commons.ErrorReason;
 import com.qiuyj.qrpc.commons.RpcException;
 import com.qiuyj.qrpc.server.ServiceExporter;

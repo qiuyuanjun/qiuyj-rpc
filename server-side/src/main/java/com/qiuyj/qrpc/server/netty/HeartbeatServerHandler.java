@@ -1,7 +1,9 @@
 package com.qiuyj.qrpc.server.netty;
 
-import com.qiuyj.qrpc.codec.MessageType;
-import com.qiuyj.qrpc.codec.RpcMessage;
+import com.qiuyj.qrpc.commons.protocol.MessageType;
+import com.qiuyj.qrpc.commons.protocol.RpcMessage;
+import com.qiuyj.qrpc.commons.protocol.heartbeat.HeartbeatFactory;
+import com.qiuyj.qrpc.server.CloseChannelException;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -14,23 +16,17 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 @ChannelHandler.Sharable
 public class HeartbeatServerHandler extends ChannelInboundHandlerAdapter {
 
-  /**
-   * 心跳包
-   */
-   private static final RpcMessage HEARTBEAT;
-
-   static {
-     HEARTBEAT = new RpcMessage();
-     HEARTBEAT.setMagic(RpcMessage.MAGIC_NUMBER);
-     HEARTBEAT.setMessageType(MessageType.HEARTBEAT_RESPONSE);
-   }
-
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) {
     RpcMessage rpcMessage = (RpcMessage) msg;
     if (rpcMessage.getMessageType() == MessageType.HEARTBEAT_REQUEST) {
-      // 这里是否需要增加一个requestId？
-      ctx.channel().writeAndFlush(HEARTBEAT);
+      HeartbeatFactory.HeartbeatRequest heartbeatRequest = (HeartbeatFactory.HeartbeatRequest) rpcMessage.getContent();
+      if (HeartbeatFactory.PING.equals(heartbeatRequest.getPing())) {
+        ctx.channel().writeAndFlush(HeartbeatFactory.getResponseHeartbeat(heartbeatRequest.getRequestId()));
+      }
+      else {
+        throw new CloseChannelException("Error heartbeat request data.");
+      }
     }
     else {
       ctx.fireChannelRead(msg);

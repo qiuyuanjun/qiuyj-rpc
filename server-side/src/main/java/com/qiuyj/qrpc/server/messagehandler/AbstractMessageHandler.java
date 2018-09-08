@@ -1,6 +1,6 @@
 package com.qiuyj.qrpc.server.messagehandler;
 
-import com.qiuyj.qrpc.codec.ResponseInfo;
+import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
 import com.qiuyj.qrpc.commons.RpcException;
 import com.qiuyj.qrpc.server.interceptor.ServiceInvocationInterceptor;
 

@@ -30,7 +30,7 @@ public class NettyRpcClient<T> extends AbstractRpcClient<T> {
   @Override
   protected Connection doConnect() {
     super.doConnect();
-    NettyConnection nettyConnection = new NettyConnection();
+    NettyConnection nettyConnection = new NettyConnection(this);
     bootstrap = createAndInitBootstrap(nettyConnection);
     // 连接远程服务器
     ChannelFuture future = bootstrap.connect(getRemoteServerAddress()).syncUninterruptibly();

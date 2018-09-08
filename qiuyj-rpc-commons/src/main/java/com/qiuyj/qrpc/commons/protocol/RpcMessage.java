@@ -1,4 +1,4 @@
-package com.qiuyj.qrpc.codec;
+package com.qiuyj.qrpc.commons.protocol;
 
 /**
  * @author qiuyj
@@ -9,7 +9,7 @@ public class RpcMessage {
   public static final int MAGIC_NUMBER = 0x19961122;
 
   /** 报文头长度，不包括报文正文 */
-  static final int HEADER_LENGTH = 9;
+  public static final int HEADER_LENGTH = 9;
 
   /** 魔数，4个字节 */
   private int magic;
@@ -54,4 +54,5 @@ public class RpcMessage {
   public void setContent(Object content) {
     this.content = content;
   }
+
 }

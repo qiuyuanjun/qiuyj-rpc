@@ -2,7 +2,7 @@ package com.qiuyj.qrpc.server.netty;
 
 import com.qiuyj.qrpc.codec.Codec;
 import com.qiuyj.qrpc.codec.CodecUtils;
-import com.qiuyj.qrpc.codec.RpcMessage;
+import com.qiuyj.qrpc.commons.protocol.RpcMessage;
 import com.qiuyj.qrpc.server.CloseChannelException;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;

@@ -1,6 +1,6 @@
 package com.qiuyj.qrpc.client;
 
-import com.qiuyj.qrpc.codec.ResponseInfo;
+import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
 
 import java.util.Objects;
 import java.util.concurrent.*;

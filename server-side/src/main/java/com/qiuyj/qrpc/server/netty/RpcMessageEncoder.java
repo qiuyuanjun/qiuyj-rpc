@@ -2,7 +2,7 @@ package com.qiuyj.qrpc.server.netty;
 
 import com.qiuyj.qrpc.codec.Codec;
 import com.qiuyj.qrpc.codec.CodecUtils;
-import com.qiuyj.qrpc.codec.RpcMessage;
+import com.qiuyj.qrpc.commons.protocol.RpcMessage;
 import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageEncoder;

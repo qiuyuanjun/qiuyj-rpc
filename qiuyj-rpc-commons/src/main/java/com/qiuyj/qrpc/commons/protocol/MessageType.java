@@ -1,4 +1,4 @@
-package com.qiuyj.qrpc.codec;
+package com.qiuyj.qrpc.commons.protocol;
 
 /**
  * @author qiuyj

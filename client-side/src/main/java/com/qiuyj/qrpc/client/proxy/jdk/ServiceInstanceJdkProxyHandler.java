@@ -3,10 +3,10 @@ package com.qiuyj.qrpc.client.proxy.jdk;
 import com.qiuyj.api.Connection;
 import com.qiuyj.qrpc.client.requestid.LongSequenceRequestId;
 import com.qiuyj.qrpc.client.requestid.RequestId;
-import com.qiuyj.qrpc.codec.MessageType;
-import com.qiuyj.qrpc.codec.RequestInfo;
-import com.qiuyj.qrpc.codec.ResponseInfo;
-import com.qiuyj.qrpc.codec.RpcMessage;
+import com.qiuyj.qrpc.commons.protocol.MessageType;
+import com.qiuyj.qrpc.commons.protocol.RequestInfo;
+import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
+import com.qiuyj.qrpc.commons.protocol.RpcMessage;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
