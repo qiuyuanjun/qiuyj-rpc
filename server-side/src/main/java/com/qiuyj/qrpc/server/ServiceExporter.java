@@ -1,7 +1,10 @@
 package com.qiuyj.qrpc.server;
 
+import com.qiuyj.qrpc.commons.ErrorReason;
 import com.qiuyj.qrpc.commons.MethodSignUtils;
 import com.qiuyj.qrpc.commons.ObjectMethods;
+import com.qiuyj.qrpc.commons.RpcException;
+import com.qiuyj.qrpc.commons.protocol.RequestInfo;
 import com.qiuyj.qrpc.server.invoke.MethodInvoker;
 import com.qiuyj.qrpc.server.invoke.ServiceProxy;
 
@@ -9,6 +12,7 @@ import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author qiuyj
@@ -36,6 +40,19 @@ public class ServiceExporter {
    */
   public ServiceProxy getServiceProxy(Class<?> serviceInterface) {
     return serviceProxyMap.get(serviceInterface);
+  }
+
+  /**
+   * 判断当前的请求是否是异步请求
+   * @param serviceInterface 请求服务接口
+   * @return 如果是，那么返回{@code true}，否则返回{@code false}
+   */
+  public boolean isAsyncRequest(Class<?> serviceInterface, RequestInfo requestInfo) {
+    ServiceProxy serviceProxy = getServiceProxy(serviceInterface);
+    if (Objects.isNull(serviceProxy)) {
+      throw new RpcException(requestInfo.getRequestId(), ErrorReason.SERVICE_NOT_FOUND);
+    }
+    return serviceProxy.isAsyncRequest(requestInfo);
   }
 
   /**

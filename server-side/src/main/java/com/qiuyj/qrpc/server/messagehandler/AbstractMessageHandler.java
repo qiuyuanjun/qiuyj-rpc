@@ -22,28 +22,35 @@ public abstract class AbstractMessageHandler<T> implements MessageHandler<T> {
 
   @Override
   public ResponseInfo handle(T message) {
-    Object result = null;
-    boolean catchException = false;
-    try {
-      result = beforeHandleMessage(message);
-      if (Objects.isNull(result)) {
-        result = doHandle(message);
+    // 首先判断是否是异步执行
+    if (isAsyncExecute(message)) {
+      // 如果是异步执行，那么开启线程池执行对应的服务请求
+      return null;
+    }
+    else {
+      Object result = null;
+      boolean catchException = false;
+      try {
+        result = beforeHandleMessage(message);
+        if (Objects.isNull(result)) {
+          result = doHandle(message);
+        }
       }
-    }
-    catch (Throwable e) {
-      catchException = true;
-      if (e instanceof RpcException) {
-        throw (RpcException) e;
+      catch (Throwable e) {
+        catchException = true;
+        if (e instanceof RpcException) {
+          throw (RpcException) e;
+        }
+        result = e;
       }
-      result = e;
+      finally {
+        afterCompleteHandleMessage(catchException, result);
+      }
+      // 发送消息到客户端
+      ResponseInfo response = new ResponseInfo();
+      response.setResult(result);
+      return response;
     }
-    finally {
-      afterCompleteHandleMessage(catchException, result);
-    }
-    // 发送消息到客户端
-    ResponseInfo response = new ResponseInfo();
-    response.setResult(result);
-    return response;
   }
 
   protected Object beforeHandleMessage(T message) {
@@ -69,4 +76,11 @@ public abstract class AbstractMessageHandler<T> implements MessageHandler<T> {
    * @return 处理的结果
    */
   protected abstract Object doHandle(T message);
+
+  /**
+   * 判断一个当前的请求是否是异步执行
+   * @param message 当前的请求体
+   * @return 如果是异步执行，那么返回{@code true}，否则返回{@code false}
+   */
+  protected abstract boolean isAsyncExecute(T message);
 }

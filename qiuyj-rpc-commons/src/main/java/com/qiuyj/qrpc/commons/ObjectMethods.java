@@ -65,6 +65,16 @@ public class ObjectMethods {
   }
 
   /**
+   * 判断当前的方法是否是{@code Object}申明的方法，或者从{@code Object}重载的方法
+   * @param methodSign 方法签名
+   * @return 如果是，返回{@code true}，否则返回{@code false}
+   */
+  public boolean isObjectMethod(String methodSign) {
+    Objects.requireNonNull(methodSign, "methodSign == null");
+    return canInvokeObjectMethods.stream().anyMatch(objMethod -> objMethod.methodSign.equals(methodSign));
+  }
+
+  /**
    * 得到对应的{@code ObjectMethod}对象
    * @param methodName 方法名
    * @param args 方法参数
