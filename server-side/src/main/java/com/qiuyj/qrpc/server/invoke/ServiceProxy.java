@@ -18,11 +18,15 @@ public class ServiceProxy {
 
   private final Object serviceInstance;
 
-  private final Map<String, MethodInvoker> methods;
+  /** 同步调用的方法 */
+  private final Map<String, MethodInvoker> syncMethods;
 
-  public ServiceProxy(Object instance, Map<String, MethodInvoker> methods) {
+  /** 异步调用的方法 */
+  private Map<String, MethodInvoker> asyncMethods;
+
+  public ServiceProxy(Object instance, Map<String, MethodInvoker> syncMethods) {
     serviceInstance = instance;
-    this.methods = Collections.unmodifiableMap(methods);
+    this.syncMethods = Collections.unmodifiableMap(syncMethods);
   }
 
   /**
@@ -44,7 +48,7 @@ public class ServiceProxy {
       }
     }
     // 2.如果不是Object的方法，那么得到对应的MethodInvoker对象
-    MethodInvoker invoker = methods.get(methodSign);
+    MethodInvoker invoker = syncMethods.get(methodSign);
     if (Objects.isNull(invoker)) {
       // 没有对应的方法，直接抛出异常，交给ChannelHandler的exceptionCaught方法处理
       throw new RpcException(requestId, ErrorReason.SERVICE_NOT_FOUND);
