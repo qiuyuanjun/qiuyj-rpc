@@ -3,6 +3,8 @@ package com.qiuyj.qrpc.server;
 import com.qiuyj.qrpc.commons.instantiation.ObjectFactory;
 import com.qiuyj.qrpc.commons.instantiation.ServiceInstanceProvider;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  * @author qiuyj
  * @since 2018-06-13
@@ -34,4 +36,10 @@ public interface ConfigurableRpcServer extends RpcServer {
    * @param port 要设置的端口值
    */
   void setPort(int port);
+
+  /**
+   * 设置异步任务执行线程池
+   * @param asyncExecutor 异步任务执行线程池
+   */
+  void setAsyncExecutor(ExecutorService asyncExecutor);
 }

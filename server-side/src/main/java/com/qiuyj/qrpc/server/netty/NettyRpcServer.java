@@ -2,6 +2,7 @@ package com.qiuyj.qrpc.server.netty;
 
 import com.qiuyj.qrpc.server.AbstractRpcServer;
 import com.qiuyj.qrpc.server.ServiceExporter;
+import com.qiuyj.qrpc.commons.async.AsyncServiceCallExecutor;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelOption;
@@ -10,6 +11,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author qiuyj
@@ -35,7 +37,12 @@ public class NettyRpcServer extends AbstractRpcServer {
 
   @Override
   protected void startInternal(ServiceExporter serviceExporter) {
-    nettyServerBootstrap = createAndInitServerBootstrap(serviceExporter);
+    ExecutorService asyncExecutor = getAsyncExecutor();
+    if (Objects.isNull(asyncExecutor)) {
+      asyncExecutor = new AsyncServiceCallExecutor();
+      setAsyncExecutor(asyncExecutor);
+    }
+    nettyServerBootstrap = createAndInitServerBootstrap(asyncExecutor, serviceExporter);
     // sync表示一直等待future，直到future完成了bind操作
     ChannelFuture channelFuture = nettyServerBootstrap.bind(getPort()).syncUninterruptibly();
     serverChannel = (NioServerSocketChannel) channelFuture.channel();
@@ -81,7 +88,7 @@ public class NettyRpcServer extends AbstractRpcServer {
     }
   }
 
-  private static ServerBootstrap createAndInitServerBootstrap(ServiceExporter serviceExporter) {
+  private static ServerBootstrap createAndInitServerBootstrap(ExecutorService asyncExecutor, ServiceExporter serviceExporter) {
     ServerBootstrap serverBootstrap = new ServerBootstrap();
     // 工作线程默认采用 cpu * 2（以后应该扩展成读取配置文件的值）
     serverBootstrap.group(new NioEventLoopGroup(1), new NioEventLoopGroup())
@@ -91,7 +98,7 @@ public class NettyRpcServer extends AbstractRpcServer {
 //        .childOption(ChannelOption.SO_KEEPALIVE, Boolean.TRUE)
         // 禁止nagel算法，防止tcp粘包
         .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
-        .childHandler(new NettyRpcChannelInitializer(serviceExporter));
+        .childHandler(new NettyRpcChannelInitializer(asyncExecutor, serviceExporter));
     return serverBootstrap;
   }
 }

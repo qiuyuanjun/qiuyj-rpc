@@ -10,6 +10,8 @@ module qrpc.server {
   requires qrpc.codec;
   requires org.slf4j;
 
+  exports com.qiuyj.qrpc.server.annotation;
+  exports com.qiuyj.qrpc.server.interceptor;
   exports com.qiuyj.qrpc.server;
   exports com.qiuyj.qrpc.server.invoke;
   exports com.qiuyj.qrpc.server.netty;

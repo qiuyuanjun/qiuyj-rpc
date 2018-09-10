@@ -7,16 +7,21 @@ import com.qiuyj.qrpc.commons.protocol.RequestInfo;
 import com.qiuyj.qrpc.server.ServiceExporter;
 import com.qiuyj.qrpc.server.invoke.ServiceProxy;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  * @author qiuyj
  * @since 2018-08-26
  */
 public class RequestInfoMessageHandler extends AbstractMessageHandler<RequestInfo> {
 
+  /**
+   * 当前rpc服务器所暴露的所有的服务
+   */
   private final ServiceExporter serviceExporter;
 
-  public RequestInfoMessageHandler(ServiceExporter serviceExporter) {
-    super(null);
+  public RequestInfoMessageHandler(ExecutorService asyncExecutor, ServiceExporter serviceExporter) {
+    super(null, asyncExecutor);
     this.serviceExporter = serviceExporter;
   }
 

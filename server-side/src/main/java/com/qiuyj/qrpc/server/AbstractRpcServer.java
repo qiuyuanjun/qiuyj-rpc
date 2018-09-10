@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
 /**
@@ -38,6 +39,9 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
 
   /** rpc服务器的端口，默认是11221 */
   private volatile int port = DEFAULT_PORT;
+
+  /** 异步任务执行线程池 */
+  private ExecutorService asyncExecutor;
 
   @Override
   protected void doStart() {
@@ -78,6 +82,8 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
       servicePackages = null;
     }
     closeInternal();
+    // 关闭线程池
+    asyncExecutor.shutdown();
   }
 
   /**
@@ -107,6 +113,15 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
       port = DEFAULT_PORT;
     }
     this.port = port;
+  }
+
+  protected ExecutorService getAsyncExecutor() {
+    return asyncExecutor;
+  }
+
+  @Override
+  public void setAsyncExecutor(ExecutorService asyncExecutor) {
+    this.asyncExecutor = asyncExecutor;
   }
 
   @Override

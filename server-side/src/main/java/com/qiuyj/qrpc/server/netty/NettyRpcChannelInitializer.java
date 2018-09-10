@@ -7,6 +7,8 @@ import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.util.concurrent.GlobalEventExecutor;
 
+import java.util.concurrent.ExecutorService;
+
 /**
  * @author qiuyj
  * @since 2018-06-19
@@ -19,9 +21,12 @@ public class NettyRpcChannelInitializer extends ChannelInitializer<SocketChannel
   /** 当前服务器所有暴露的服务的集合 */
   private final ServiceExporter serviceExporter;
 
-  public NettyRpcChannelInitializer(ServiceExporter serviceExporter) {
+  private final ExecutorService asyncExecutor;
+
+  public NettyRpcChannelInitializer(ExecutorService asyncExecutor, ServiceExporter serviceExporter) {
     this.serviceExporter = serviceExporter;
     clients = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+    this.asyncExecutor = asyncExecutor;
   }
 
   @Override
@@ -33,7 +38,7 @@ public class NettyRpcChannelInitializer extends ChannelInitializer<SocketChannel
     // 心跳服务器端处理器
     ch.pipeline().addLast("heartbeatServerHandler", new HeartbeatServerHandler());
     // rpc调用处理器
-    ch.pipeline().addLast("rpcMessageHandler", new NettyRpcInvokerHandler(clients, serviceExporter));
+    ch.pipeline().addLast("rpcMessageHandler", new NettyRpcInvokerHandler(clients, serviceExporter, asyncExecutor));
   }
 
   public ChannelGroup getClients() {

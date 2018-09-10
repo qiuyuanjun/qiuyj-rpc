@@ -7,6 +7,7 @@ import com.qiuyj.qrpc.server.interceptor.ServiceInvocationInterceptor;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author qiuyj
@@ -14,10 +15,19 @@ import java.util.Objects;
  */
 public abstract class AbstractMessageHandler<T> implements MessageHandler<T> {
 
+  /**
+   * 拦截器
+   */
   private List<ServiceInvocationInterceptor> interceptors;
 
-  protected AbstractMessageHandler(List<ServiceInvocationInterceptor> interceptors) {
+  /**
+   * 异步执行线程池
+   */
+  private ExecutorService asyncExecutor;
+
+  protected AbstractMessageHandler(List<ServiceInvocationInterceptor> interceptors, ExecutorService asyncExecutor) {
     this.interceptors = Objects.isNull(interceptors) ? Collections.emptyList() : interceptors;
+    this.asyncExecutor = asyncExecutor;
   }
 
   @Override

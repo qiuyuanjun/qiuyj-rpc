@@ -10,4 +10,5 @@ module qrpc.commons {
   exports com.qiuyj.qrpc.commons.instantiation;
   exports com.qiuyj.qrpc.commons.protocol;
   exports com.qiuyj.qrpc.commons.protocol.heartbeat;
+  exports com.qiuyj.qrpc.commons.async;
 }

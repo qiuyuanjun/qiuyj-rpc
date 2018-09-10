@@ -17,6 +17,7 @@ import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author qiuyj
@@ -30,9 +31,9 @@ class NettyRpcInvokerHandler extends ChannelInboundHandlerAdapter {
 
   private final MessageHandler<RequestInfo> serverMessageHandler;
 
-  public NettyRpcInvokerHandler(ChannelGroup clients, ServiceExporter serviceExporter) {
+  public NettyRpcInvokerHandler(ChannelGroup clients, ServiceExporter serviceExporter, ExecutorService asyncExecutor) {
     this.clients = clients;
-    serverMessageHandler = new RequestInfoMessageHandler(serviceExporter);
+    serverMessageHandler = new RequestInfoMessageHandler(asyncExecutor, serviceExporter);
   }
 
   @Override

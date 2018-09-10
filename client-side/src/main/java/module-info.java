@@ -11,5 +11,4 @@ module qrpc.client {
 
   exports com.qiuyj.qrpc.client;
   exports com.qiuyj.qrpc.client.netty;
-  exports com.qiuyj.qrpc.client.proxy;
 }

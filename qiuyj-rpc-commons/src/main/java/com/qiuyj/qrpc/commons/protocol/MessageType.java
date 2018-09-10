@@ -29,7 +29,12 @@ public enum MessageType {
   /**
    * 心跳响应类型
    */
-  HEARTBEAT_RESPONSE((byte) 0x4D);
+  HEARTBEAT_RESPONSE((byte) 0x4D),
+
+  /**
+   * 异步返回类型
+   */
+  ASYNC_RESPONSE((byte) 0xFF);
 
   private final byte b;
 
@@ -54,7 +59,7 @@ public enum MessageType {
    * @return {@code true}是响应报文类型，{@code false}不是响应报文类型
    */
   public boolean isResponseType() {
-    return this == RPC_RESPONSE || this == HEARTBEAT_RESPONSE || this == ERROR_RESPONSE;
+    return this == RPC_RESPONSE || this == ASYNC_RESPONSE || this == HEARTBEAT_RESPONSE || this == ERROR_RESPONSE;
   }
 
   public static MessageType ofByte(byte b) {
