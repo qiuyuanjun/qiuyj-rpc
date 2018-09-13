@@ -8,7 +8,7 @@ import com.qiuyj.test.service.impl.TestServiceImpl;
  * @author qiuyj
  * @since 2018-06-18
  */
-@RpcService(implementation = TestServiceImpl.class)
+@RpcService
 public interface TestService {
 
   @RpcMethod

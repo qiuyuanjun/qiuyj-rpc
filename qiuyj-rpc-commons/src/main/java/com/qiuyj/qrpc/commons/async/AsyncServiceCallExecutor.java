@@ -1,9 +1,6 @@
 package com.qiuyj.qrpc.commons.async;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * @author qiuyj
@@ -11,15 +8,15 @@ import java.util.concurrent.TimeUnit;
  */
 public class AsyncServiceCallExecutor extends ThreadPoolExecutor implements ExecutorService {
 
-  private static int corePoolSize;
+  private static int corePoolSize = 1;
 
-  private static int maxPoolSize;
+  private static int maxPoolSize = 1;
 
-  private static BlockingQueue<Runnable> workQueue;
+  private static BlockingQueue<Runnable> workQueue = new LinkedBlockingQueue<>(20);
 
-  private static long keepAliveTime;
+  private static long keepAliveTime = 30L;
 
-  private static TimeUnit unit;
+  private static TimeUnit unit = TimeUnit.SECONDS;
 
   static {
     // 读取配置文件或者环境变量，初始化各种参数

@@ -71,9 +71,10 @@ public class ServiceProxy {
         throw new RpcException(requestId, ErrorReason.EXECUTE_SERVICE_ERROR);
       }
     }
+    MethodInvoker invoker;
     // 2.如果不是Object的方法，那么首先从syncMethods里面得到MethodInvoker
-    MethodInvoker invoker = syncMethods.get(methodSign);
-    if (Objects.nonNull(invoker)) {
+    invoker = syncMethods.get(methodSign);
+    if (Objects.nonNull(syncMethods) && Objects.nonNull(invoker = syncMethods.get(methodSign))) {
       // 3.执行invoke调用方法执行，返回结果
       try {
         return invoker.invoke(serviceInstance, args);
@@ -83,7 +84,7 @@ public class ServiceProxy {
       }
     }
     // 4.如果不是syncMethod，那么判断是否是asyncMethods
-    else if (Objects.nonNull(invoker = asyncMethods.get(methodSign))) {
+    else if (Objects.nonNull(asyncMethods) && Objects.nonNull(invoker = asyncMethods.get(methodSign))) {
       // 5.异步执行被调用的服务方法
 
       // 直接返回null，后期将结果放入ResponseFuture
