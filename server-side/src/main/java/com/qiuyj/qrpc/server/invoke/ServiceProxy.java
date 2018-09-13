@@ -73,7 +73,6 @@ public class ServiceProxy {
     }
     MethodInvoker invoker;
     // 2.如果不是Object的方法，那么首先从syncMethods里面得到MethodInvoker
-    invoker = syncMethods.get(methodSign);
     if (Objects.nonNull(syncMethods) && Objects.nonNull(invoker = syncMethods.get(methodSign))) {
       // 3.执行invoke调用方法执行，返回结果
       try {
