@@ -3,7 +3,9 @@ package com.qiuyj.qrpc.client;
 import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
 
 import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author qiuyj
@@ -30,31 +32,40 @@ public class ResponseManager {
       throw new IllegalStateException("Holder not set yet.");
     }
     holder.setResponse(result);
-    CountDownLatch latch = holder.getLatch();
-    if (Objects.isNull(latch)) {
+//    CountDownLatch latch = holder.getLatch();
+    Object mutex = holder.getMutex();
+    if (Objects.isNull(mutex)) {
       responseHolderMap.remove(result.getRequestId());
-      throw new IllegalStateException("Countdown latch not set yet.");
+      throw new IllegalStateException("Response mutex not set yet.");
     }
-    latch.countDown();
+    synchronized (mutex) {
+      mutex.notify();
+    }
+//    latch.countDown();
   }
 
   /**
    * 等待服务器端返回结果
    */
   public void waitForResponseResult(String requestId) throws TimeoutException {
-    CountDownLatch latch = new CountDownLatch(1);
+//    CountDownLatch latch = new CountDownLatch(1);
+    Object mutex = new Object();
     ResponseHolder holder = new ResponseHolder();
-    holder.setLatch(latch);
+    holder.setMutex(mutex);
     responseHolderMap.put(requestId, holder);
-    try {
-      // 如果此时，从netty服务器异步返回数据的时候抛出了异常
-      // 那么这里将无法唤醒
-      // 所以这里设置一个最长的阻塞时间5秒
-      // TODO timeout通过用户配置的读取
-      latch.await(5L, TimeUnit.SECONDS);
-    }
-    catch (InterruptedException e) {
-      Thread.currentThread().interrupt();
+    synchronized (mutex) {
+      try {
+        // 如果此时，从netty服务器异步返回数据的时候抛出了异常
+        // 那么这里将无法唤醒
+        // 所以这里设置一个最长的阻塞时间5秒
+        // TODO timeout通过用户配置的读取
+        mutex.wait(5000L);
+      }
+      catch (InterruptedException e) {
+        // 从responseHolderMap里面移除
+        responseHolderMap.remove(requestId, holder);
+        throw new IllegalStateException(e);
+      }
     }
     // 这里需要检测是否有值，如果没有值
     // 那么表明抛出了异常
@@ -85,7 +96,10 @@ public class ResponseManager {
 
     private ResponseInfo response;
 
-    private CountDownLatch latch;
+//    private CountDownLatch latch;
+
+    /** response返回信号量 */
+    private Object mutex;
 
     public ResponseInfo getResponse() {
       return response;
@@ -95,12 +109,12 @@ public class ResponseManager {
       this.response = response;
     }
 
-    public CountDownLatch getLatch() {
-      return latch;
+    public Object getMutex() {
+      return mutex;
     }
 
-    public void setLatch(CountDownLatch latch) {
-      this.latch = latch;
+    public void setMutex(Object mutex) {
+      this.mutex = mutex;
     }
   }
 }
