@@ -117,11 +117,13 @@ public class DefaultFuture<V> implements ListenableFuture<V>, WritableFuture<V> 
 
   @Override
   public boolean cancel(boolean mayInterruptIfRunning) {
-    return false;
+    // 不支持cancel操作
+    throw new UnsupportedOperationException("Unsupport cancel operation.");
   }
 
   @Override
   public boolean isCancelled() {
+    // 不支持cancel操作，那么该方法永远返回false
     return false;
   }
 
