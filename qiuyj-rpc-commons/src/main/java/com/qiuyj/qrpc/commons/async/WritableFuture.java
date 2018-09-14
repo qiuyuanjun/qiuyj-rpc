@@ -11,16 +11,16 @@ public interface WritableFuture<V> extends Future<V> {
 
   /**
    * 设置结果，如果已经设置了，那么应该抛出一个异常
-   * @param result 结果
+   * @param success 结果
    */
-  void setSuccess(V result);
+  void setSuccess(V success);
 
   /**
    * 尝试设置结果，如果设置成功，那么返回true，如果已经设置了结果，那么返回false
-   * @param result 结果
+   * @param success 结果
    * @return 如果之前已经设置了结果，那么返回{@code false}，否则返回{@code true}
    */
-  boolean trySuccess(V result);
+  boolean trySuccess(V success);
 
   /**
    * 设置错误，如果当前的{@code Future}处于已经完成的状态，那么抛出异常

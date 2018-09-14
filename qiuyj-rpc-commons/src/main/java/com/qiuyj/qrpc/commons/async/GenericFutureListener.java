@@ -7,11 +7,11 @@ import java.util.EventListener;
  * @author qiuyj
  * @since 2018-09-12
  */
-public interface GenericListener<F extends DefaultFuture<?>> extends EventListener {
+public interface GenericFutureListener extends EventListener {
 
   /**
    * 当{@code Future}的result被设置了值之后调用的方法
    * @param future 当前future
    */
-  void complete(F future);
+  void onCompletion(DefaultFuture<?> future);
 }
