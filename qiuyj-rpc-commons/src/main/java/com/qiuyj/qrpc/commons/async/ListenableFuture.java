@@ -10,6 +10,12 @@ import java.util.concurrent.Future;
 public interface ListenableFuture<V> extends Future<V> {
 
   /**
+   * 立即获取结果，如果此时还没有完成，那么直接返回{@code null}
+   * @return 对应的结果，可能为{@code null}
+   */
+  V getNow();
+
+  /**
    * 添加监听器
    * @param listener 监听器
    */

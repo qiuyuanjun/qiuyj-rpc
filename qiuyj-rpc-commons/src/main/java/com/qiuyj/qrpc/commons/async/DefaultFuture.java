@@ -156,6 +156,19 @@ public class DefaultFuture<V> implements ListenableFuture<V>, WritableFuture<V> 
   }
 
   @Override
+  public V getNow() {
+    if (isDone()) {
+      Object result = this.result == NULL_SUCCESS ?
+          null :
+          this.result instanceof CauseHolder ?
+              null :
+              this.result;
+      return (V) result;
+    }
+    return null;
+  }
+
+  @Override
   public void addListener(GenericFutureListener listener) {
     Objects.requireNonNull(listener, "listener == null.");
     // 判断是否已经完成，如果已经完成，那么notify当前的listener

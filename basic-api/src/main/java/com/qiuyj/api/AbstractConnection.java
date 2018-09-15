@@ -47,8 +47,10 @@ public abstract class AbstractConnection implements Connection {
 
   @Override
   public void close() {
-    if (Objects.nonNull(scheduledFuture) && !scheduledFuture.isDone()) {
-      scheduledFuture.cancel(true);
+    if (Objects.nonNull(scheduledFuture)) {
+      if (!scheduledFuture.isDone()) {
+        scheduledFuture.cancel(true);
+      }
       scheduledFuture = null;
     }
     if (Objects.nonNull(client)) {
