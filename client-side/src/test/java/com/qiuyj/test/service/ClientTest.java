@@ -2,7 +2,6 @@ package com.qiuyj.test.service;
 
 import com.qiuyj.qrpc.client.ConfigurableRpcClient;
 import com.qiuyj.qrpc.client.netty.NettyRpcClient;
-import org.junit.Test;
 
 /**
  * @author qiuyj
@@ -10,15 +9,14 @@ import org.junit.Test;
  */
 public class ClientTest {
 
-  @Test
-  public void testClient() {
-    ConfigurableRpcClient<TestService> client = new NettyRpcClient<>();
-    client.setMaxRetryWhenFailedToConnect(3);
-    client.setServiceInterface(TestService.class);
-    client.connect();
-    TestService testService = client.getServiceInstance();
+  public static void main(String[] args) {
+    ConfigurableRpcClient<TestService> rpcClient = new NettyRpcClient<>(TestService.class);
+    rpcClient.setMaxRetryWhenFailedToConnect(3);
+    rpcClient.connect();
+    TestService testService = rpcClient.getServiceInstance();
     System.out.println(testService.sayHello());
-    System.out.println(testService.hashCode());
     System.out.println(testService.toString());
+    System.out.println(testService.hashCode());
+    rpcClient.close();
   }
 }

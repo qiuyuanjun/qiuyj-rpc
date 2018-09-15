@@ -4,7 +4,6 @@ import com.qiuyj.qrpc.server.ConfigurableRpcServer;
 import com.qiuyj.qrpc.server.netty.NettyRpcServer;
 import com.qiuyj.test.service.TestService;
 import com.qiuyj.test.service.impl.TestServiceImpl;
-import org.junit.Test;
 
 /**
  * @author qiuyj
@@ -12,8 +11,7 @@ import org.junit.Test;
  */
 public class RpcServerTest {
 
-  @Test
-  public void test01() {
+  public static void main(String[] args) {
     ConfigurableRpcServer server = new NettyRpcServer(true);
 //    server.setServicePackageToScan("com.qiuyj.test.service");
     server.addServiceToExport(TestService.class, new TestServiceImpl());
