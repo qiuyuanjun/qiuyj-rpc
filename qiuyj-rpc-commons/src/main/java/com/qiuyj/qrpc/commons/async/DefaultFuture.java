@@ -45,6 +45,11 @@ public class DefaultFuture<V> implements ListenableFuture<V>, WritableFuture<V> 
    */
   private ExecutorService listenerExecutor;
 
+  /**
+   * 当前被阻塞的线程数
+   */
+  private int waitThreads;
+
   public DefaultFuture() {
 //    this(null);
     // no-op
@@ -73,10 +78,7 @@ public class DefaultFuture<V> implements ListenableFuture<V>, WritableFuture<V> 
   private boolean setSuccess0(V success) {
     Object result = Objects.isNull(success) ? NULL_SUCCESS : success;
     if (RESULT_UPDATER.compareAndSet(this, null, result)) {
-      // 唤醒所有被阻塞的线程
-      synchronized (this) {
-        notifyAll();
-      }
+      notifyAll0();
       return true;
     }
     return false;
@@ -110,12 +112,21 @@ public class DefaultFuture<V> implements ListenableFuture<V>, WritableFuture<V> 
   private boolean setFailure0(Throwable failure) {
     CauseHolder result = Objects.isNull(failure) ? NULL_SUCCESS_CAUSEHOLDER : new CauseHolder(failure);
     if (RESULT_UPDATER.compareAndSet(this, null, result)) {
-      synchronized (this) {
-        notifyAll();
-      }
+      notifyAll0();
       return true;
     }
     return false;
+  }
+
+  /**
+   * 唤醒所有被阻塞的线程
+   */
+  private void notifyAll0() {
+    if (waitThreads > 0) {
+      synchronized (this) {
+        notifyAll();
+      }
+    }
   }
 
   @Override
@@ -203,9 +214,15 @@ public class DefaultFuture<V> implements ListenableFuture<V>, WritableFuture<V> 
     else if (Thread.interrupted()) {
       throw new InterruptedException(toString());
     }
-    while (!isDone()) {
-      synchronized (this) {
-        wait();
+    synchronized (this) {
+      while (!isDone()) {
+        waitThreads++;
+        try {
+          wait();
+        }
+        finally {
+          waitThreads--;
+        }
       }
     }
   }
@@ -233,7 +250,48 @@ public class DefaultFuture<V> implements ListenableFuture<V>, WritableFuture<V> 
 
   @Override
   public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
-    return null;
+    if (awaitNanos(unit.toNanos(timeout))) {
+      return get();
+    }
+    throw new TimeoutException();
+  }
+
+  private boolean awaitNanos(long nanos) throws InterruptedException {
+    // 如果已经完成，直接返回true
+    if (isDone()) {
+      return true;
+    }
+    // 如果传入过来的等待时间小于等于0，那么立即判断是否设置了结果
+    if (nanos <= 0) {
+      return isDone();
+    }
+    // 如果线程被中断，那么抛出被中断异常
+    if (Thread.interrupted()) {
+      throw new InterruptedException(toString());
+    }
+    long startTime = System.nanoTime(),
+         waitTime = nanos;
+    for (;;) {
+      synchronized (this) {
+        if (isDone()) {
+          return true;
+        }
+        waitThreads++;
+        try {
+          wait(waitTime / 1000000, (int) waitTime % 1000000);
+        }
+        finally {
+          waitThreads--;
+        }
+        if (isDone()) {
+          return true;
+        }
+        waitTime = nanos - (System.nanoTime() - startTime);
+        if (waitTime <= 0) {
+          return isDone();
+        }
+      }
+    }
   }
 
   @Override
