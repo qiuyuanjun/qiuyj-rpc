@@ -2,8 +2,10 @@ package com.qiuyj.api;
 
 import com.qiuyj.api.client.Client;
 
+import java.util.Objects;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -25,7 +27,11 @@ public abstract class AbstractConnection implements Connection {
   /** 最大的空闲时间，默认30秒 */
   private long maxWriterIdleNanoTime = TimeUnit.SECONDS.toNanos(30L);
 
+  /** 客户端对象 */
   private Client client;
+
+  /** 发送心跳的定时任务的future对象 */
+  private ScheduledFuture<?> scheduledFuture;
 
   protected AbstractConnection(Client client) {
 //    initialize();
@@ -37,6 +43,17 @@ public abstract class AbstractConnection implements Connection {
     final Object result = doSend(message);
     lastWriteTime = ticksInNanos();
     return result;
+  }
+
+  @Override
+  public void close() {
+    if (Objects.nonNull(scheduledFuture) && !scheduledFuture.isDone()) {
+      scheduledFuture.cancel(true);
+      scheduledFuture = null;
+    }
+    if (Objects.nonNull(client)) {
+      client = null;
+    }
   }
 
   /**
@@ -74,8 +91,8 @@ public abstract class AbstractConnection implements Connection {
    * @param task 任务
    * @param delay 时延
    */
-  private static void schedule(Runnable task, long delay) {
-    channelIdleStateChecker.schedule(task, delay, TimeUnit.NANOSECONDS);
+  private void schedule(Runnable task, long delay) {
+    this.scheduledFuture = channelIdleStateChecker.schedule(task, delay, TimeUnit.NANOSECONDS);
   }
 
   private class WriterIdleTimeoutTask implements Runnable {
@@ -93,11 +110,11 @@ public abstract class AbstractConnection implements Connection {
         }
         else {
           // 重置定时器
-          AbstractConnection.schedule(this, AbstractConnection.this.maxWriterIdleNanoTime);
+          AbstractConnection.this.schedule(this, AbstractConnection.this.maxWriterIdleNanoTime);
         }
       }
       else {
-        AbstractConnection.schedule(this, nextDelay);
+        AbstractConnection.this.schedule(this, nextDelay);
       }
     }
   }
