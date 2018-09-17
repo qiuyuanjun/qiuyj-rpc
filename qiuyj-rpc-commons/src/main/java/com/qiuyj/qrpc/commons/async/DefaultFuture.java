@@ -158,11 +158,9 @@ public class DefaultFuture<V> implements ListenableFuture<V>, WritableFuture<V> 
   @Override
   public V getNow() {
     if (isDone()) {
-      Object result = this.result == NULL_SUCCESS ?
-          null :
-          this.result instanceof CauseHolder ?
-              null :
-              this.result;
+      Object result =
+          (this.result == NULL_SUCCESS || this.result instanceof CauseHolder) ?
+              null : this.result;
       return (V) result;
     }
     return null;
@@ -264,11 +262,17 @@ public class DefaultFuture<V> implements ListenableFuture<V>, WritableFuture<V> 
   @Override
   public V get(long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException {
     if (awaitNanos(unit.toNanos(timeout))) {
-      return get();
+      return report();
     }
     throw new TimeoutException();
   }
 
+  /**
+   * 等待，如果等待时间超过了给定的时间，那么返回false，否则返回true
+   * @param nanos 等待的时间数，单位为纳秒
+   * @return 如果在等待中，被唤醒，那么返回true，如果等待时间超过给定的时间，那么返回false
+   * @throws InterruptedException 如果当前等待的线程被中断，那么抛出该异常
+   */
   private boolean awaitNanos(long nanos) throws InterruptedException {
     // 如果已经完成，直接返回true
     if (isDone()) {
