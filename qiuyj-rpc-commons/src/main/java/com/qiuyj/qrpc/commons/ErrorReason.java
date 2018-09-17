@@ -8,7 +8,9 @@ public enum ErrorReason {
 
   SERVICE_NOT_FOUND(1001, "找不到服务"),
 
-  EXECUTE_SERVICE_ERROR(1002, "服务执行异常");
+  EXECUTE_SERVICE_ERROR(1002, "服务执行异常"),
+
+  ABNORMAL_BUSINESS_ERROR(1003, "非正常业务的异常");
 
   private final int errorCode;
 

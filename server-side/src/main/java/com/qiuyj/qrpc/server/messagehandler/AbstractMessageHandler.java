@@ -1,5 +1,6 @@
 package com.qiuyj.qrpc.server.messagehandler;
 
+import com.qiuyj.qrpc.commons.async.DefaultFuture;
 import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
 import com.qiuyj.qrpc.commons.RpcException;
 import com.qiuyj.qrpc.server.interceptor.ServiceInvocationInterceptor;
@@ -31,11 +32,15 @@ public abstract class AbstractMessageHandler<T> implements MessageHandler<T> {
   }
 
   @Override
-  public ResponseInfo handle(T message) {
+  public Object handle(T message) {
     // 首先判断是否是异步执行
     if (isAsyncExecute(message)) {
       // 如果是异步执行，那么开启线程池执行对应的服务请求
-      return null;
+      DefaultFuture<ResponseInfo> responseFuture = new DefaultFuture<>(asyncExecutor);
+      asyncExecutor.execute(() -> {
+
+      });
+      return responseFuture;
     }
     else {
       Object result = null;
