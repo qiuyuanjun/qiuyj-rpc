@@ -41,7 +41,7 @@ public abstract class AbstractServer implements Server {
         if (LOGGER.isInfoEnabled()) {
           LOGGER.info("Start the server successfully. At " + LocalDateTime.now());
         }
-        afterStartedServer();
+        afterServerStarted();
       }
     }
   }
@@ -49,7 +49,7 @@ public abstract class AbstractServer implements Server {
   /**
    * 服务器完全启动之后的回调，如果子类有这样的需求，那么可以通过重写该方法实现
    */
-  protected void afterStartedServer() {
+  protected void afterServerStarted() {
     // for subclass
   }
 

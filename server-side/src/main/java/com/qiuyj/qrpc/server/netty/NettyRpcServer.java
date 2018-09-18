@@ -74,7 +74,7 @@ public class NettyRpcServer extends AbstractRpcServer {
   }
 
   @Override
-  protected void afterStartedServer() {
+  protected void afterServerStarted() {
     if (sync) {
       try {
         // 一直阻塞到服务器被关闭
