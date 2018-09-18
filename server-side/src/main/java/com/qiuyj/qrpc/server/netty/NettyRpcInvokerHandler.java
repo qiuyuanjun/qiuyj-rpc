@@ -1,17 +1,17 @@
 package com.qiuyj.qrpc.server.netty;
 
 import com.qiuyj.qrpc.codec.SerializationException;
-import com.qiuyj.qrpc.commons.ErrorReason;
 import com.qiuyj.qrpc.commons.RpcException;
 import com.qiuyj.qrpc.commons.async.DefaultFuture;
 import com.qiuyj.qrpc.commons.protocol.MessageType;
 import com.qiuyj.qrpc.commons.protocol.RequestInfo;
 import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
 import com.qiuyj.qrpc.commons.protocol.RpcMessage;
+import com.qiuyj.qrpc.server.ChannelAttachedRequestInfo;
 import com.qiuyj.qrpc.server.CloseChannelException;
 import com.qiuyj.qrpc.server.ServiceExporter;
 import com.qiuyj.qrpc.server.messagehandler.MessageHandler;
-import com.qiuyj.qrpc.server.messagehandler.RequestInfoMessageHandler;
+import com.qiuyj.qrpc.server.messagehandler.netty.NettyChannelAwareRequestInfoMessageHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.channel.group.ChannelGroup;
@@ -19,7 +19,6 @@ import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -36,7 +35,7 @@ class NettyRpcInvokerHandler extends ChannelInboundHandlerAdapter {
 
   public NettyRpcInvokerHandler(ChannelGroup clients, ServiceExporter serviceExporter, ExecutorService asyncExecutor) {
     this.clients = clients;
-    serverMessageHandler = new RequestInfoMessageHandler(asyncExecutor, serviceExporter);
+    serverMessageHandler = new NettyChannelAwareRequestInfoMessageHandler(asyncExecutor, serviceExporter);
   }
 
   @Override
@@ -64,28 +63,18 @@ class NettyRpcInvokerHandler extends ChannelInboundHandlerAdapter {
     // 通过解码器，可以将字节序列转成RpcMessage对象
     // 传到当前的ChannelHandler的时候，可以直接强转
     RequestInfo request = (RequestInfo) ((RpcMessage) msg).getContent();
+    // 将requestInfo包装，将channel信息封装进去，方便后续异步调用获取channel对象
+    ChannelAttachedRequestInfo wrappedRequest = new ChannelAttachedRequestInfo(request, ctx.channel());
     // 交给对应的messageHandler处理消息，并返回给客户端结果
-    Object result = serverMessageHandler.handle(request);
+    Object result = serverMessageHandler.handle(wrappedRequest);
     ResponseInfo response;
     if (result instanceof ResponseInfo) {
       response = (ResponseInfo) result;
     }
     else {
       DefaultFuture<ResponseInfo> future = (DefaultFuture<ResponseInfo>) result;
-      if (future.isDone()) {
-        try {
-          response = future.get();
-        } catch (InterruptedException e) {
-          LOGGER.error("非正常业务的异常", e);
-          throw new RpcException(request.getRequestId(), ErrorReason.ABNORMAL_BUSINESS_ERROR);
-        } catch (ExecutionException e) {
-          throw new RpcException(request.getRequestId(), ErrorReason.EXECUTE_SERVICE_ERROR);
-        }
-      }
-      else {
-        // 返回异步消息标志
-        return;
-      }
+      // 返回异步消息标志
+      return;
     }
     response.setRequestId(request.getRequestId());
     // 将结果保存到RpcMessage里面

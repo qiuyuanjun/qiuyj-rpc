@@ -3,8 +3,6 @@ package com.qiuyj.test.service;
 import com.qiuyj.qrpc.client.ConfigurableRpcClient;
 import com.qiuyj.qrpc.client.netty.NettyRpcClient;
 import com.qiuyj.qrpc.commons.async.DefaultFuture;
-import io.netty.util.concurrent.DefaultPromise;
-import io.netty.util.concurrent.GlobalEventExecutor;
 
 import java.util.concurrent.ExecutionException;
 
@@ -14,7 +12,7 @@ import java.util.concurrent.ExecutionException;
  */
 public class ClientTest {
 
-  public static void main(String[] args) throws InterruptedException {
+  public static void main(String[] args) throws InterruptedException, ExecutionException {
     ConfigurableRpcClient<TestService> rpcClient = new NettyRpcClient<>(TestService.class);
     rpcClient.setMaxRetryWhenFailedToConnect(3);
     rpcClient.connect();
@@ -23,7 +21,7 @@ public class ClientTest {
     System.out.println(testService.hashCode());
     DefaultFuture<String> future = new DefaultFuture<>();
     new Thread(() -> future.setSuccess(testService.sayHello())).start();
-    System.out.println(future.getNow());
+    System.out.println(future.get());
     rpcClient.close();
   }
 }

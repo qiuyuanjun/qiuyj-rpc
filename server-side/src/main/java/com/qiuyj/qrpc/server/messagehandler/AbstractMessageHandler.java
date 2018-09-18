@@ -1,8 +1,8 @@
 package com.qiuyj.qrpc.server.messagehandler;
 
+import com.qiuyj.qrpc.commons.RpcException;
 import com.qiuyj.qrpc.commons.async.DefaultFuture;
 import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
-import com.qiuyj.qrpc.commons.RpcException;
 import com.qiuyj.qrpc.server.interceptor.ServiceInvocationInterceptor;
 
 import java.util.Collections;
@@ -36,36 +36,62 @@ public abstract class AbstractMessageHandler<T> implements MessageHandler<T> {
     // 首先判断是否是异步执行
     if (isAsyncExecute(message)) {
       // 如果是异步执行，那么开启线程池执行对应的服务请求
-      DefaultFuture<ResponseInfo> responseFuture = new DefaultFuture<>(asyncExecutor);
+      DefaultFuture<Object> responseFuture = new DefaultFuture<>(asyncExecutor);
+      responseFuture.addListener(f -> sendAsyncResponse(message, f));
       asyncExecutor.execute(() -> {
-
+        try {
+          Object result = getResult(message);
+          responseFuture.setSuccess(result);
+        }
+        catch (Exception e) {
+          responseFuture.setFailure(e);
+        }
       });
       return responseFuture;
     }
     else {
-      Object result = null;
-      boolean catchException = false;
-      try {
-        result = beforeHandleMessage(message);
-        if (Objects.isNull(result)) {
-          result = doHandle(message);
-        }
-      }
-      catch (Throwable e) {
-        catchException = true;
-        if (e instanceof RpcException) {
-          throw (RpcException) e;
-        }
-        result = e;
-      }
-      finally {
-        afterCompleteHandleMessage(catchException, result);
-      }
+      Object result = getResult(message);
       // 发送消息到客户端
       ResponseInfo response = new ResponseInfo();
       response.setResult(result);
       return response;
     }
+  }
+
+  /**
+   * 得到服务调用的结果
+   * @param message 服务请求对象
+   * @return 调用结果
+   */
+  private Object getResult(T message) {
+    Object result = null;
+    boolean catchException = false;
+    try {
+      result = beforeHandleMessage(message);
+      if (Objects.isNull(result)) {
+        result = doHandle(message);
+      }
+    }
+    catch (Throwable e) {
+      catchException = true;
+      if (e instanceof RpcException) {
+        throw (RpcException) e;
+      }
+      result = e;
+    }
+    finally {
+      afterCompleteHandleMessage(catchException, result);
+    }
+    return result;
+  }
+
+  /**
+   * 异步服务响应，模版方法，交给子类实现
+   * @param message 请求消息
+   * @param future 已经完成的future对象
+   */
+  protected void sendAsyncResponse(T message, DefaultFuture future) {
+    // do nothing, for subclass
   }
 
   protected Object beforeHandleMessage(T message) {
