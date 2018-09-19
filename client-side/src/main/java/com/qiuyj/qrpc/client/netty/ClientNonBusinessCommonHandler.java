@@ -2,31 +2,37 @@ package com.qiuyj.qrpc.client.netty;
 
 import com.qiuyj.qrpc.client.ResponseManager;
 import com.qiuyj.qrpc.client.RpcErrorResponseException;
+import com.qiuyj.qrpc.commons.ErrorReason;
 import com.qiuyj.qrpc.commons.protocol.MessageType;
 import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
 import com.qiuyj.qrpc.commons.protocol.RpcMessage;
-import com.qiuyj.qrpc.commons.ErrorReason;
+import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 
 /**
- * 处理服务器端错误返回的处理器
  * @author qiuyj
  * @since 2018-09-08
  */
-public class ErrorResponseHandler extends ChannelInboundHandlerAdapter {
+@ChannelHandler.Sharable
+public class ClientNonBusinessCommonHandler extends ChannelInboundHandlerAdapter {
 
   @Override
-  public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+  public void channelRead(ChannelHandlerContext ctx, Object msg) {
     RpcMessage rpcMessage = (RpcMessage) msg;
-    if (rpcMessage.getMessageType() == MessageType.ERROR_RESPONSE) {
+    // 处理心跳返回
+    if (rpcMessage.getMessageType() == MessageType.HEARTBEAT_RESPONSE) {
+      ResponseInfo responseInfo = (ResponseInfo) rpcMessage.getContent();
+      ResponseManager.INSTANCE.done(responseInfo);
+    }
+    // 处理错误返回
+    else if (rpcMessage.getMessageType() == MessageType.ERROR_RESPONSE) {
       ResponseInfo info = (ResponseInfo) rpcMessage.getContent();
       info.setResult(new RpcErrorResponseException((ErrorReason) info.getResult()));
       ResponseManager.INSTANCE.done(info);
     }
     else {
-      // 不是错误类型，那么交给下一个处理器处理消息
-      super.channelRead(ctx, msg);
+      ctx.fireChannelRead(msg);
     }
   }
 }
