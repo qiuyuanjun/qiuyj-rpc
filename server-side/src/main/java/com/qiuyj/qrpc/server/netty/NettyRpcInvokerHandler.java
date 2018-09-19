@@ -2,12 +2,10 @@ package com.qiuyj.qrpc.server.netty;
 
 import com.qiuyj.qrpc.codec.SerializationException;
 import com.qiuyj.qrpc.commons.RpcException;
-import com.qiuyj.qrpc.commons.async.DefaultFuture;
 import com.qiuyj.qrpc.commons.protocol.MessageType;
 import com.qiuyj.qrpc.commons.protocol.RequestInfo;
 import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
 import com.qiuyj.qrpc.commons.protocol.RpcMessage;
-import com.qiuyj.qrpc.server.ChannelAttachedRequestInfo;
 import com.qiuyj.qrpc.server.CloseChannelException;
 import com.qiuyj.qrpc.server.ServiceExporter;
 import com.qiuyj.qrpc.server.messagehandler.MessageHandler;
@@ -19,6 +17,7 @@ import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.io.IOException;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -64,25 +63,23 @@ class NettyRpcInvokerHandler extends ChannelInboundHandlerAdapter {
     // 传到当前的ChannelHandler的时候，可以直接强转
     RequestInfo request = (RequestInfo) ((RpcMessage) msg).getContent();
     // 将requestInfo包装，将channel信息封装进去，方便后续异步调用获取channel对象
-    ChannelAttachedRequestInfo wrappedRequest = new ChannelAttachedRequestInfo(request, ctx.channel());
+    NettyChannelAttachedRequestInfo wrappedRequest = new NettyChannelAttachedRequestInfo(request, ctx.channel());
     // 交给对应的messageHandler处理消息，并返回给客户端结果
-    Object result = serverMessageHandler.handle(wrappedRequest);
-    ResponseInfo response;
-    if (result instanceof ResponseInfo) {
-      response = (ResponseInfo) result;
+    ResponseInfo result = serverMessageHandler.handle(wrappedRequest);
+    if (Objects.nonNull(result)) {
+      // 返回同步消息标志
+      result.setRequestId(request.getRequestId());
+      // 将结果保存到RpcMessage里面
+      RpcMessage rpcMessage = new RpcMessage();
+      rpcMessage.setMagic(RpcMessage.MAGIC_NUMBER);
+      rpcMessage.setMessageType(MessageType.RPC_RESPONSE);
+      rpcMessage.setContent(result);
+      ctx.channel().writeAndFlush(rpcMessage);
     }
     else {
-      DefaultFuture<ResponseInfo> future = (DefaultFuture<ResponseInfo>) result;
       // 返回异步消息标志
-      return;
+      ctx.channel().writeAndFlush(RpcMessage.ASYNC_RESPONSE_IMMEDIATELY);
     }
-    response.setRequestId(request.getRequestId());
-    // 将结果保存到RpcMessage里面
-    RpcMessage rpcMessage = new RpcMessage();
-    rpcMessage.setMagic(RpcMessage.MAGIC_NUMBER);
-    rpcMessage.setMessageType(MessageType.RPC_RESPONSE);
-    rpcMessage.setContent(response);
-    ctx.channel().writeAndFlush(rpcMessage);
   }
 
   @Override

@@ -32,9 +32,14 @@ public enum MessageType {
   HEARTBEAT_RESPONSE((byte) 0x4D),
 
   /**
-   * 异步返回类型
+   * 异步返回类型（表示此时返回的消息已经有服务调用的结果）
    */
-  ASYNC_RESPONSE((byte) 0xFF);
+  ASYNC_RESPONSE((byte) 0xFF),
+
+  /**
+   * 异步返回类型（表示立即返回类型，即此时返回的消息还没有服务调用的结果）
+   */
+  ASYNC_RESPONSE_IMMEDIATELY((byte) 0xFE);
 
   private final byte b;
 

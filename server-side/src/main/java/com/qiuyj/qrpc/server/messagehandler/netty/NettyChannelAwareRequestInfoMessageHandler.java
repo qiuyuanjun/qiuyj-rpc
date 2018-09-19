@@ -7,7 +7,7 @@ import com.qiuyj.qrpc.commons.protocol.MessageType;
 import com.qiuyj.qrpc.commons.protocol.RequestInfo;
 import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
 import com.qiuyj.qrpc.commons.protocol.RpcMessage;
-import com.qiuyj.qrpc.server.ChannelAttachedRequestInfo;
+import com.qiuyj.qrpc.server.netty.NettyChannelAttachedRequestInfo;
 import com.qiuyj.qrpc.server.ServiceExporter;
 import com.qiuyj.qrpc.server.messagehandler.RequestInfoMessageHandler;
 import io.netty.channel.Channel;
@@ -42,7 +42,7 @@ public class NettyChannelAwareRequestInfoMessageHandler extends RequestInfoMessa
       LOGGER.error("服务异步执行抛出异常.", e);
       throw new RpcException(message.getRequestId(), ErrorReason.ASYNC_EXECUTE_SERVICE_ERROR);
     }
-    ChannelAttachedRequestInfo  requestInfo = (ChannelAttachedRequestInfo) message;
+    NettyChannelAttachedRequestInfo requestInfo = (NettyChannelAttachedRequestInfo) message;
     Channel ch = requestInfo.getChannel();
     // 将结果封装成ResponseInfo
     ResponseInfo responseInfo = new ResponseInfo();

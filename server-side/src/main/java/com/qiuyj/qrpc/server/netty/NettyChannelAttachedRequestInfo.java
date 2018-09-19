@@ -1,4 +1,4 @@
-package com.qiuyj.qrpc.server;
+package com.qiuyj.qrpc.server.netty;
 
 import com.qiuyj.qrpc.commons.protocol.RequestInfo;
 import io.netty.channel.Channel;
@@ -8,14 +8,14 @@ import io.netty.channel.Channel;
  * @author qiuyj
  * @since 2018-09-18
  */
-public class ChannelAttachedRequestInfo extends RequestInfo {
+public class NettyChannelAttachedRequestInfo extends RequestInfo {
 
   private static final long serialVersionUID = -147283483521846080L;
 
   /** 异步调用的通信channel */
   private Channel ch;
 
-  public ChannelAttachedRequestInfo(RequestInfo requestInfo, Channel ch) {
+  public NettyChannelAttachedRequestInfo(RequestInfo requestInfo, Channel ch) {
     this.ch = ch;
     setInterfaceName(requestInfo.getInterfaceName());
     setMethodName(requestInfo.getMethodName());
@@ -23,7 +23,7 @@ public class ChannelAttachedRequestInfo extends RequestInfo {
     setMethodParameters(requestInfo.getMethodParameters());
   }
 
-  public ChannelAttachedRequestInfo(RequestInfo requestInfo) {
+  public NettyChannelAttachedRequestInfo(RequestInfo requestInfo) {
     this(requestInfo, null);
   }
 

@@ -32,7 +32,7 @@ public abstract class AbstractMessageHandler<T> implements MessageHandler<T> {
   }
 
   @Override
-  public Object handle(T message) {
+  public ResponseInfo handle(T message) {
     // 首先判断是否是异步执行
     if (isAsyncExecute(message)) {
       // 如果是异步执行，那么开启线程池执行对应的服务请求
@@ -47,7 +47,7 @@ public abstract class AbstractMessageHandler<T> implements MessageHandler<T> {
           responseFuture.setFailure(e);
         }
       });
-      return responseFuture;
+      return null;
     }
     else {
       Object result = getResult(message);
