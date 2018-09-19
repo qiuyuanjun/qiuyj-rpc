@@ -55,10 +55,4 @@ public class RpcMessage {
     this.content = content;
   }
 
-  public static final RpcMessage ASYNC_RESPONSE_IMMEDIATELY;
-  static {
-    ASYNC_RESPONSE_IMMEDIATELY = new RpcMessage();
-    ASYNC_RESPONSE_IMMEDIATELY.setMagic(MAGIC_NUMBER);
-    ASYNC_RESPONSE_IMMEDIATELY.setMessageType(MessageType.ASYNC_RESPONSE_IMMEDIATELY);
-  }
 }

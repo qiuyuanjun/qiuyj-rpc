@@ -25,6 +25,8 @@ public class NettyClientChannelInitializer extends ChannelInitializer<SocketChan
     ch.pipeline().addLast("rpcMessageEncoder", new RpcMessageEncoder());
     // rpc客户端公共非业务处理器
     ch.pipeline().addLast("rpcClientNonBusinessCommonHandler", new ClientNonBusinessCommonHandler());
+    // 异步服务调用客户端处理器
+    ch.pipeline().addLast("asyncResponseHandler", new AsyncResponseHandler());
     // rpc正常消息处理器
     ch.pipeline().addLast("rpcClientMessageHandler", new NettyRpcClientMessageHandler(nettyConnection));
   }

@@ -70,16 +70,29 @@ class NettyRpcInvokerHandler extends ChannelInboundHandlerAdapter {
       // 返回同步消息标志
       result.setRequestId(request.getRequestId());
       // 将结果保存到RpcMessage里面
-      RpcMessage rpcMessage = new RpcMessage();
-      rpcMessage.setMagic(RpcMessage.MAGIC_NUMBER);
-      rpcMessage.setMessageType(MessageType.RPC_RESPONSE);
-      rpcMessage.setContent(result);
+      RpcMessage rpcMessage = getRpcMessage(MessageType.RPC_RESPONSE, result);
       ctx.channel().writeAndFlush(rpcMessage);
     }
     else {
       // 返回异步消息标志
-      ctx.channel().writeAndFlush(RpcMessage.ASYNC_RESPONSE_IMMEDIATELY);
+      ResponseInfo responseInfo = new ResponseInfo();
+      responseInfo.setRequestId(request.getRequestId());
+      RpcMessage rpcMessage = getRpcMessage(MessageType.ASYNC_RESPONSE_IMMEDIATELY, responseInfo);
+      ctx.channel().writeAndFlush(rpcMessage);
     }
+  }
+
+  /**
+   * 封装成对应的rpcMessage
+   * @param messageType {@code messageType}
+   * @param responseInfo {@code responseInfo}
+   * @return {@code rpcMessage}
+   */
+  private RpcMessage getRpcMessage(MessageType messageType, ResponseInfo responseInfo) {
+    RpcMessage rpcMessage = new RpcMessage();
+    rpcMessage.setMagic(RpcMessage.MAGIC_NUMBER);
+    rpcMessage.setContent(responseInfo);
+    return rpcMessage;
   }
 
   @Override
