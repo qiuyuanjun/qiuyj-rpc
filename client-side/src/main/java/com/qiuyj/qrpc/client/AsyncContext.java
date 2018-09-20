@@ -50,7 +50,13 @@ public class AsyncContext {
     if (Objects.isNull(t)) {
       throw new IllegalStateException("Not initialize.");
     }
-    Integer newIdx = currentThreadFutureIndex.computeIfPresent(t, (thread, oldIdx) -> oldIdx + 1);
+    Integer newIdx = currentThreadFutureIndex.computeIfPresent(t, (thread, oldIdx) -> {
+      int newValue = oldIdx + 1;
+      if (newValue >= QUEUE_MAXLENGTH_OF_FUTURES_PER_THREAD) {
+        newValue = 0;
+      }
+      return newValue;
+    });
     if (Objects.isNull(newIdx)) {
       throw new IllegalStateException("Not initialize.");
     }
