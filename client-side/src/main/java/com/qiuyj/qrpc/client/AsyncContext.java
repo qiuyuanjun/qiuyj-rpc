@@ -2,7 +2,9 @@ package com.qiuyj.qrpc.client;
 
 import com.qiuyj.qrpc.commons.async.DefaultFuture;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -21,7 +23,7 @@ public class AsyncContext {
   private static Map<Thread, Integer> currentThreadFutureIndex = new ConcurrentHashMap<>(64);
 
   /** thread -> futures */
-  private static Map<Thread, List<DefaultFuture<Object>>> futureMap = new ConcurrentHashMap<>(64);
+  private static Map<Thread, DefaultFuture<Object>[]> futureMap = new ConcurrentHashMap<>(64);
 
   /**
    * 得到当前线程有关的异步调用的Future对象
@@ -33,11 +35,11 @@ public class AsyncContext {
     if (Objects.isNull(index)) {
       throw new IllegalStateException("Not initialize.");
     }
-    List<DefaultFuture<Object>> defaultFutures = futureMap.get(currentThread);
+    DefaultFuture<Object>[] defaultFutures = futureMap.get(currentThread);
     if (Objects.isNull(defaultFutures)) {
       throw new IllegalStateException("Not initialize.");
     }
-    return defaultFutures.get(index);
+    return defaultFutures[index];
   }
 
   /**
@@ -60,7 +62,7 @@ public class AsyncContext {
     if (Objects.isNull(newIdx)) {
       throw new IllegalStateException("Not initialize.");
     }
-    futureMap.get(t).set(newIdx, future);
+    futureMap.get(t)[newIdx] = future;
   }
 
   /**
@@ -68,10 +70,11 @@ public class AsyncContext {
    * @apiNote 该方法为内部方法，外部用户请不要调用该方法，一定不要调用这个方法
    * @param requestId 请求id
    */
+  @SuppressWarnings("unchecked")
   public static void initAsyncCall(String requestId) {
     Thread currentThread = Thread.currentThread();
     threadMap.put(requestId, currentThread);
     currentThreadFutureIndex.putIfAbsent(currentThread, -1);
-    futureMap.computeIfAbsent(currentThread, t -> new ArrayList<>(QUEUE_MAXLENGTH_OF_FUTURES_PER_THREAD));
+    futureMap.computeIfAbsent(currentThread, t -> new DefaultFuture[QUEUE_MAXLENGTH_OF_FUTURES_PER_THREAD]);
   }
 }
