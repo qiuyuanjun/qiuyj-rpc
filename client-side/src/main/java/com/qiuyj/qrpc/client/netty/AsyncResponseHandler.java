@@ -1,5 +1,6 @@
 package com.qiuyj.qrpc.client.netty;
 
+import com.qiuyj.qrpc.client.AsyncContext;
 import com.qiuyj.qrpc.client.ResponseManager;
 import com.qiuyj.qrpc.commons.async.DefaultFuture;
 import com.qiuyj.qrpc.commons.protocol.MessageType;
@@ -32,6 +33,7 @@ public class AsyncResponseHandler extends ChannelInboundHandlerAdapter {
       ResponseInfo responseInfo = (ResponseInfo) rpcMessage.getContent();
       // 将asyncFuture放置到tempFutureMap中
       tempFutureMap.put(responseInfo.getRequestId(), asyncFuture);
+      AsyncContext.setFuture(responseInfo.getRequestId(), asyncFuture);
       // 唤醒等待线程
       ResponseManager.INSTANCE.done((ResponseInfo) rpcMessage.getContent());
     }
@@ -40,8 +42,6 @@ public class AsyncResponseHandler extends ChannelInboundHandlerAdapter {
       // 从AsyncContext得到对应的asyncFuture
       DefaultFuture<Object> asyncFuture = tempFutureMap.remove(responseInfo.getRequestId());
       asyncFuture.setSuccess(responseInfo.getResult());
-      // TODO 将asyncFuture设置到用户可以获取的作用域上
-      
     }
     else {
       ctx.fireChannelRead(msg);
