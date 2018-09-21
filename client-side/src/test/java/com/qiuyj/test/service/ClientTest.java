@@ -16,7 +16,10 @@ public class ClientTest {
     rpcClient.connect();
     TestService testService = rpcClient.getServiceInstance();
     testService.sayHello("qiuyj");
-    AsyncContext.getFuture().addListener(f -> System.out.println(f.getNow()));
+    AsyncContext.getFuture().addListener(f -> {
+      System.out.println(f.getNow());
+      rpcClient.close();
+    });
     System.out.println(123);
   }
 }
