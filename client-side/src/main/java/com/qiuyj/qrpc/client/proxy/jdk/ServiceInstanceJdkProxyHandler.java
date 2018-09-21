@@ -1,8 +1,10 @@
 package com.qiuyj.qrpc.client.proxy.jdk;
 
 import com.qiuyj.api.Connection;
+import com.qiuyj.qrpc.client.AsyncContext;
 import com.qiuyj.qrpc.client.requestid.LongSequenceRequestId;
 import com.qiuyj.qrpc.client.requestid.RequestId;
+import com.qiuyj.qrpc.commons.annotation.RpcMethod;
 import com.qiuyj.qrpc.commons.protocol.MessageType;
 import com.qiuyj.qrpc.commons.protocol.RequestInfo;
 import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
@@ -69,6 +71,13 @@ public class ServiceInstanceJdkProxyHandler implements InvocationHandler {
     }
   }
 
+  /**
+   * 得到rpc调用的请求报文
+   * @param serviceInterface 服务接口
+   * @param method 调用的方法
+   * @param args 方法参数
+   * @return rpc请求报文
+   */
   private static RpcMessage getRequestRpcMessage(Class<?> serviceInterface, Method method, Object[] args) {
     RequestInfo rpcRequest = new RequestInfo();
     rpcRequest.setInterfaceName(serviceInterface.getName());
@@ -78,7 +87,17 @@ public class ServiceInstanceJdkProxyHandler implements InvocationHandler {
 
     RpcMessage rpcMessage = new RpcMessage();
     rpcMessage.setMagic(RpcMessage.MAGIC_NUMBER);
-    rpcMessage.setMessageType(MessageType.RPC_REQUEST);
+    // 判断当前请求是否是异步请求，默认为同步请求
+    MessageType requestType = MessageType.RPC_REQUEST;
+    if (method.isAnnotationPresent(RpcMethod.class)) {
+      RpcMethod rpcMethod = method.getAnnotation(RpcMethod.class);
+      if (rpcMethod.async()) {
+        requestType = MessageType.ASYNC_REQUEST;
+        // 往AsyncContext里面初始化异步调用的对应的参数
+        AsyncContext.initAsyncCall(rpcRequest.getRequestId());
+      }
+    }
+    rpcMessage.setMessageType(requestType);
     rpcMessage.setContent(rpcRequest);
 
     return rpcMessage;

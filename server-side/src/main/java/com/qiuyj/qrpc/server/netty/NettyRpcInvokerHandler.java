@@ -60,25 +60,28 @@ class NettyRpcInvokerHandler extends ChannelInboundHandlerAdapter {
   @SuppressWarnings("unchecked")
   public void channelRead(ChannelHandlerContext ctx, Object msg) {
     // 通过解码器，可以将字节序列转成RpcMessage对象
+    RpcMessage rpcMessage = (RpcMessage) msg;
     // 传到当前的ChannelHandler的时候，可以直接强转
-    RequestInfo request = (RequestInfo) ((RpcMessage) msg).getContent();
+    RequestInfo request = (RequestInfo) rpcMessage.getContent();
     // 将requestInfo包装，将channel信息封装进去，方便后续异步调用获取channel对象
     NettyChannelAttachedRequestInfo wrappedRequest = new NettyChannelAttachedRequestInfo(request, ctx.channel());
+    wrappedRequest.setMessageType(rpcMessage.getMessageType());
     // 交给对应的messageHandler处理消息，并返回给客户端结果
     ResponseInfo result = serverMessageHandler.handle(wrappedRequest);
     if (Objects.nonNull(result)) {
       // 返回同步消息标志
       result.setRequestId(request.getRequestId());
       // 将结果保存到RpcMessage里面
-      RpcMessage rpcMessage = getRpcMessage(MessageType.RPC_RESPONSE, result);
+      RpcMessage responseMsg = getRpcMessage(MessageType.RPC_RESPONSE, result);
       ctx.channel().writeAndFlush(rpcMessage);
     }
     else {
       // 返回异步消息标志
       ResponseInfo responseInfo = new ResponseInfo();
       responseInfo.setRequestId(request.getRequestId());
-      RpcMessage rpcMessage = getRpcMessage(MessageType.ASYNC_RESPONSE_IMMEDIATELY, responseInfo);
-      ctx.channel().writeAndFlush(rpcMessage);
+      responseInfo.setResult(null);
+      RpcMessage responseMsg = getRpcMessage(MessageType.ASYNC_RESPONSE_IMMEDIATELY, responseInfo);
+      ctx.channel().writeAndFlush(responseMsg);
     }
   }
 
@@ -91,6 +94,7 @@ class NettyRpcInvokerHandler extends ChannelInboundHandlerAdapter {
   private RpcMessage getRpcMessage(MessageType messageType, ResponseInfo responseInfo) {
     RpcMessage rpcMessage = new RpcMessage();
     rpcMessage.setMagic(RpcMessage.MAGIC_NUMBER);
+    rpcMessage.setMessageType(messageType);
     rpcMessage.setContent(responseInfo);
     return rpcMessage;
   }

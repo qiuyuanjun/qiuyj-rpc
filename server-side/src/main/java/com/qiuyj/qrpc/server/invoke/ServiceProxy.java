@@ -85,9 +85,12 @@ public class ServiceProxy {
     // 4.如果不是syncMethod，那么判断是否是asyncMethods
     else if (Objects.nonNull(asyncMethods) && Objects.nonNull(invoker = asyncMethods.get(methodSign))) {
       // 5.异步执行被调用的服务方法
-
-      // 直接返回null，后期将结果放入ResponseFuture
-      return null;
+      try {
+        return invoker.invoke(serviceInstance, args);
+      }
+      catch (InvocationTargetException e) {
+        throw new RpcException(requestId, ErrorReason.EXECUTE_SERVICE_ERROR);
+      }
     }
     else {
       // 没有对应的方法，直接抛出异常，交给ChannelHandler的exceptionCaught方法处理

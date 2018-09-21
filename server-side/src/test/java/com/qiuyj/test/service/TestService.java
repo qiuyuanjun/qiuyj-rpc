@@ -11,7 +11,7 @@ import com.qiuyj.test.service.impl.TestServiceImpl;
 @RpcService
 public interface TestService {
 
-  @RpcMethod
-  String sayHello();
+  @RpcMethod(async = true)
+  String sayHello(String arg);
 
 }

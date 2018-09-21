@@ -1,5 +1,6 @@
 package com.qiuyj.qrpc.server.netty;
 
+import com.qiuyj.qrpc.commons.protocol.MessageType;
 import com.qiuyj.qrpc.commons.protocol.RequestInfo;
 import io.netty.channel.Channel;
 
@@ -10,10 +11,13 @@ import io.netty.channel.Channel;
  */
 public class NettyChannelAttachedRequestInfo extends RequestInfo {
 
-  private static final long serialVersionUID = 1319524532064627393L;
+  private static final long serialVersionUID = 764110566377818179L;
 
   /** 异步调用的通信channel */
   private Channel ch;
+
+  /** 消息类型，用于帮助判断是否是异步调用 */
+  private MessageType messageType;
 
   public NettyChannelAttachedRequestInfo(RequestInfo requestInfo, Channel ch) {
     this.ch = ch;
@@ -33,5 +37,13 @@ public class NettyChannelAttachedRequestInfo extends RequestInfo {
 
   public Channel getChannel() {
     return ch;
+  }
+
+  public MessageType getMessageType() {
+    return messageType;
+  }
+
+  public void setMessageType(MessageType messageType) {
+    this.messageType = messageType;
   }
 }

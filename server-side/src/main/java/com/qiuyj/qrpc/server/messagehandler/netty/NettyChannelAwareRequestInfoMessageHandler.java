@@ -14,6 +14,7 @@ import io.netty.channel.Channel;
 import io.netty.util.internal.logging.InternalLogger;
 import io.netty.util.internal.logging.InternalLoggerFactory;
 
+import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 
@@ -55,5 +56,12 @@ public class NettyChannelAwareRequestInfoMessageHandler extends RequestInfoMessa
     rpcMessage.setContent(responseInfo);
 
     ch.writeAndFlush(rpcMessage);
+  }
+
+  @Override
+  protected boolean isAsyncRequest(RequestInfo message) {
+    NettyChannelAttachedRequestInfo requestInfo = (NettyChannelAttachedRequestInfo) message;
+    // 如果当前requestInfo对象没有携带MessageType对象，那么默认是同步调用
+    return Objects.nonNull(requestInfo.getMessageType()) && requestInfo.getMessageType() == MessageType.ASYNC_REQUEST;
   }
 }

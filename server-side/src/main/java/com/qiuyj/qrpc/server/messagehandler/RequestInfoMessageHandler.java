@@ -7,6 +7,7 @@ import com.qiuyj.qrpc.commons.protocol.RequestInfo;
 import com.qiuyj.qrpc.server.ServiceExporter;
 import com.qiuyj.qrpc.server.invoke.ServiceProxy;
 
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -29,16 +30,31 @@ public class RequestInfoMessageHandler extends AbstractMessageHandler<RequestInf
   protected Object doHandle(RequestInfo message) {
     Class<?> interfaceCls = getInterfaceClass(message);
     ServiceProxy serviceProxy = serviceExporter.getServiceProxy(interfaceCls);
-    // 这里无需判断serviceProxy为null的情况
-    // 因为如果能到这里，那么表示一定不为null
-    // 因为再调用这个方法之前调用的isAsyncExecute方法已经判断了
+    // 这里仍然需要判断serviceProxy为null的情况
+    // 如果当前请求不是异步请求的话，那么在isAsyncExecute方法内部不会去判断serviceProxy为null
+    // 所以这里还需要再次判断，确保程序的健壮性
+    if (Objects.isNull(serviceProxy)) {
+      throw new RpcException(message.getRequestId(), ErrorReason.SERVICE_NOT_FOUND);
+    }
     return serviceProxy.call(message.getRequestId(), message.getMethodName(), message.getMethodParameters());
   }
 
   @Override
   protected boolean isAsyncExecute(RequestInfo message) {
+    if (!isAsyncRequest(message)) {
+      return false;
+    }
     Class<?> interfaceCls = getInterfaceClass(message);
     return serviceExporter.isAsyncRequest(interfaceCls, message);
+  }
+
+  /**
+   * 判断当前请求是否是异步请求，子类覆盖并重写该方法
+   * @param requestInfo 请求对象
+   * @return 如果是异步请求，返回{@code true}，否则返回{@code false}
+   */
+  protected boolean isAsyncRequest(RequestInfo requestInfo) {
+    return true;
   }
 
   /**

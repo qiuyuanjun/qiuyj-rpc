@@ -39,7 +39,12 @@ public enum MessageType {
   /**
    * 异步返回类型（表示立即返回类型，即此时返回的消息还没有服务调用的结果）
    */
-  ASYNC_RESPONSE_IMMEDIATELY((byte) 0xFE);
+  ASYNC_RESPONSE_IMMEDIATELY((byte) 0xFE),
+
+  /**
+   * 异步请求类型
+   */
+  ASYNC_REQUEST((byte) 0xFD);
 
   private final byte b;
 
@@ -56,7 +61,9 @@ public enum MessageType {
    * @return {@code true}是请求报文类型，{@code false}不是请求报文类型
    */
   public boolean isRequestType() {
-    return this == RPC_REQUEST || this == HEARTBEAT_REQUEST;
+    return this == RPC_REQUEST ||
+        this == ASYNC_REQUEST ||
+        this == HEARTBEAT_REQUEST;
   }
 
   /**
@@ -64,7 +71,11 @@ public enum MessageType {
    * @return {@code true}是响应报文类型，{@code false}不是响应报文类型
    */
   public boolean isResponseType() {
-    return this == RPC_RESPONSE || this == ASYNC_RESPONSE || this == HEARTBEAT_RESPONSE || this == ERROR_RESPONSE;
+    return this == RPC_RESPONSE ||
+        this == ASYNC_RESPONSE ||
+        this == ASYNC_RESPONSE_IMMEDIATELY ||
+        this == HEARTBEAT_RESPONSE ||
+        this == ERROR_RESPONSE;
   }
 
   public static MessageType ofByte(byte b) {
