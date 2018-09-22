@@ -73,7 +73,7 @@ class NettyRpcInvokerHandler extends ChannelInboundHandlerAdapter {
       result.setRequestId(request.getRequestId());
       // 将结果保存到RpcMessage里面
       RpcMessage responseMsg = getRpcMessage(MessageType.RPC_RESPONSE, result);
-      ctx.channel().writeAndFlush(rpcMessage);
+      ctx.channel().writeAndFlush(responseMsg);
     }
     else {
       // 返回异步消息标志

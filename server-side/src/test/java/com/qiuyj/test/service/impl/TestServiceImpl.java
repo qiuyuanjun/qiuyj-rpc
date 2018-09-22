@@ -19,7 +19,6 @@ public class TestServiceImpl implements TestService {
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
-    System.out.println("调用");
     return "hello " + arg;
   }
 }

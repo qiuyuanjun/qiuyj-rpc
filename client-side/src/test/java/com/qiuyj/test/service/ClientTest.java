@@ -15,11 +15,13 @@ public class ClientTest {
     rpcClient.setMaxRetryWhenFailedToConnect(3);
     rpcClient.connect();
     TestService testService = rpcClient.getServiceInstance();
+    System.out.println(testService.hashCode());
     testService.sayHello("qiuyj");
     AsyncContext.getFuture().addListener(f -> {
       System.out.println(f.getNow());
       rpcClient.close();
     });
+    System.out.println(testService.toString());
     System.out.println(123);
   }
 }
