@@ -46,7 +46,10 @@ System.out.println("123");
 
 客户端输出结果：
 123
-大约过了5秒之后，输出hello qiuyuanjun
+大约过了5秒之后，输出"hello qiuyuanjun"
+
+服务器端输出结果：
+大约过了5秒之后，输出"服务异步调用"
 ```
 
 #### 接下来的目标
