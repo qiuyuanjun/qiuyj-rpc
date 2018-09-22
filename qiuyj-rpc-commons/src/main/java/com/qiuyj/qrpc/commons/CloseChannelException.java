@@ -1,4 +1,4 @@
-package com.qiuyj.qrpc.server;
+package com.qiuyj.qrpc.commons;
 
 /**
  * 关闭channel的异常，当抛出这个异常的时候，服务器端要主动关闭和客户端的连接

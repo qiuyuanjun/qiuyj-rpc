@@ -12,6 +12,9 @@ findProject(":qiuyj-rpc-commons")?.name = "qrpc-commons"
 include "codec"
 findProject(":codec")?.name = "qrpc-codec"
 
-include 'client-side'
-findProject(':client-side')?.name = 'qrpc-client'
+include "client-side"
+findProject(":client-side")?.name = "qrpc-client"
+
+include "service-registry"
+findProject(":service-registry")?.name = "qrpc-registry"
 

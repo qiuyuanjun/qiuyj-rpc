@@ -4,7 +4,7 @@ import com.qiuyj.qrpc.commons.ErrorReason;
 import com.qiuyj.qrpc.commons.MethodSignUtils;
 import com.qiuyj.qrpc.commons.ObjectMethods;
 import com.qiuyj.qrpc.commons.RpcException;
-import com.qiuyj.qrpc.commons.protocol.RequestInfo;
+import com.qiuyj.qrpc.codec.protocol.RequestInfo;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.Collections;

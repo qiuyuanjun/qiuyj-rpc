@@ -1,7 +1,7 @@
 package com.qiuyj.qrpc.server.netty;
 
-import com.qiuyj.qrpc.commons.protocol.MessageType;
-import com.qiuyj.qrpc.commons.protocol.RequestInfo;
+import com.qiuyj.qrpc.codec.protocol.MessageType;
+import com.qiuyj.qrpc.codec.protocol.RequestInfo;
 import io.netty.channel.Channel;
 
 /**

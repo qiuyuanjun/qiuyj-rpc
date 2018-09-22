@@ -5,10 +5,10 @@ import com.qiuyj.qrpc.client.AsyncContext;
 import com.qiuyj.qrpc.client.requestid.LongSequenceRequestId;
 import com.qiuyj.qrpc.client.requestid.RequestId;
 import com.qiuyj.qrpc.commons.annotation.RpcMethod;
-import com.qiuyj.qrpc.commons.protocol.MessageType;
-import com.qiuyj.qrpc.commons.protocol.RequestInfo;
-import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
-import com.qiuyj.qrpc.commons.protocol.RpcMessage;
+import com.qiuyj.qrpc.codec.protocol.MessageType;
+import com.qiuyj.qrpc.codec.protocol.RequestInfo;
+import com.qiuyj.qrpc.codec.protocol.ResponseInfo;
+import com.qiuyj.qrpc.codec.protocol.RpcMessage;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;

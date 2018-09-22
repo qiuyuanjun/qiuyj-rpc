@@ -1,9 +1,9 @@
 package com.qiuyj.qrpc.server.netty;
 
-import com.qiuyj.qrpc.commons.protocol.MessageType;
-import com.qiuyj.qrpc.commons.protocol.RpcMessage;
-import com.qiuyj.qrpc.commons.protocol.heartbeat.HeartbeatFactory;
-import com.qiuyj.qrpc.server.CloseChannelException;
+import com.qiuyj.qrpc.commons.CloseChannelException;
+import com.qiuyj.qrpc.codec.protocol.MessageType;
+import com.qiuyj.qrpc.codec.protocol.RpcMessage;
+import com.qiuyj.qrpc.codec.protocol.heartbeat.HeartbeatFactory;
 import io.netty.channel.ChannelHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
@@ -14,7 +14,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
  * @since 2018-09-05
  */
 @ChannelHandler.Sharable
-public class HeartbeatServerHandler extends ChannelInboundHandlerAdapter {
+class HeartbeatServerHandler extends ChannelInboundHandlerAdapter {
 
   @Override
   public void channelRead(ChannelHandlerContext ctx, Object msg) {

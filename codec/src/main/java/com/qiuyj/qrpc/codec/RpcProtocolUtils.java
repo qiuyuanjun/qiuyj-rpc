@@ -1,6 +1,6 @@
 package com.qiuyj.qrpc.codec;
 
-import com.qiuyj.qrpc.commons.protocol.MessageType;
+import com.qiuyj.qrpc.codec.protocol.MessageType;
 
 /**
  * @author qiuyj

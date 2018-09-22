@@ -1,9 +1,9 @@
-package com.qiuyj.qrpc.commons.protocol.heartbeat;
+package com.qiuyj.qrpc.codec.protocol.heartbeat;
 
-import com.qiuyj.qrpc.commons.protocol.MessageType;
-import com.qiuyj.qrpc.commons.protocol.RequestInfo;
-import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
-import com.qiuyj.qrpc.commons.protocol.RpcMessage;
+import com.qiuyj.qrpc.codec.protocol.MessageType;
+import com.qiuyj.qrpc.codec.protocol.RequestInfo;
+import com.qiuyj.qrpc.codec.protocol.ResponseInfo;
+import com.qiuyj.qrpc.codec.protocol.RpcMessage;
 
 /**
  * @author qiuyj

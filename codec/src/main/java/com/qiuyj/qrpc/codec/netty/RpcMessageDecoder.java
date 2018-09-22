@@ -1,9 +1,9 @@
-package com.qiuyj.qrpc.server.netty;
+package com.qiuyj.qrpc.codec.netty;
 
 import com.qiuyj.qrpc.codec.Codec;
 import com.qiuyj.qrpc.codec.CodecUtils;
-import com.qiuyj.qrpc.commons.protocol.RpcMessage;
-import com.qiuyj.qrpc.server.CloseChannelException;
+import com.qiuyj.qrpc.codec.protocol.RpcMessage;
+import com.qiuyj.qrpc.commons.CloseChannelException;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;

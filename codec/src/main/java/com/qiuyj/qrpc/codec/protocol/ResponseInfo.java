@@ -1,4 +1,4 @@
-package com.qiuyj.qrpc.commons.protocol;
+package com.qiuyj.qrpc.codec.protocol;
 
 import java.io.Serializable;
 

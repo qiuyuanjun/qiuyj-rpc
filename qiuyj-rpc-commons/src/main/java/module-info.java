@@ -4,11 +4,10 @@
  */
 module qrpc.commons {
   requires qiuyj.commons;
+  requires org.slf4j;
 
   exports com.qiuyj.qrpc.commons;
   exports com.qiuyj.qrpc.commons.annotation;
   exports com.qiuyj.qrpc.commons.instantiation;
-  exports com.qiuyj.qrpc.commons.protocol;
-  exports com.qiuyj.qrpc.commons.protocol.heartbeat;
   exports com.qiuyj.qrpc.commons.async;
 }

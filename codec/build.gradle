@@ -1,4 +1,5 @@
 dependencies {
   compile(project(":qrpc-commons"))
   compile("com.caucho:hessian:4.0.51")
+  compile("io.netty:netty-all:${nettyVersion}")
 }

@@ -1,5 +1,7 @@
 package com.qiuyj.qrpc.server.netty;
 
+import com.qiuyj.qrpc.codec.netty.RpcMessageDecoder;
+import com.qiuyj.qrpc.codec.netty.RpcMessageEncoder;
 import com.qiuyj.qrpc.server.ServiceExporter;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.group.ChannelGroup;
@@ -13,7 +15,7 @@ import java.util.concurrent.ExecutorService;
  * @author qiuyj
  * @since 2018-06-19
  */
-public class NettyRpcChannelInitializer extends ChannelInitializer<SocketChannel> {
+class NettyRpcChannelInitializer extends ChannelInitializer<SocketChannel> {
 
   /** 客户端的长连接 ip -> socketchannel，全局唯一 */
   private final ChannelGroup clients;

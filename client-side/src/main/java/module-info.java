@@ -3,10 +3,9 @@
  * @since 2018-08-29
  */
 module qrpc.client {
-  requires io.netty.all;
   requires api;
-  requires qrpc.server;
   requires qrpc.commons;
+  requires io.netty.all;
   requires qrpc.codec;
 
   exports com.qiuyj.qrpc.client;

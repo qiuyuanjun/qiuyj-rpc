@@ -2,7 +2,7 @@ package com.qiuyj.qrpc.server.messagehandler;
 
 import com.qiuyj.qrpc.commons.RpcException;
 import com.qiuyj.qrpc.commons.async.DefaultFuture;
-import com.qiuyj.qrpc.commons.protocol.ResponseInfo;
+import com.qiuyj.qrpc.codec.protocol.ResponseInfo;
 import com.qiuyj.qrpc.server.interceptor.ServiceInvocationInterceptor;
 
 import java.util.Collections;

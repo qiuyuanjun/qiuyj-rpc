@@ -1,7 +1,7 @@
 package com.qiuyj.qrpc.client.netty;
 
-import com.qiuyj.qrpc.server.netty.RpcMessageDecoder;
-import com.qiuyj.qrpc.server.netty.RpcMessageEncoder;
+import com.qiuyj.qrpc.codec.netty.RpcMessageDecoder;
+import com.qiuyj.qrpc.codec.netty.RpcMessageEncoder;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.socket.SocketChannel;
 
