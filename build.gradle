@@ -1,7 +1,7 @@
 allprojects {
 
   group "com.qiuyj"
-  version "1.0.1"
+  version "2.0.0"
 
   apply plugin: "java"
   apply plugin: "idea"
