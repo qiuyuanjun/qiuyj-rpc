@@ -33,6 +33,7 @@ public abstract class AbstractServer implements Server {
       synchronized (this) {
         // 这里需要双重检测服务器的状态，防止在多线程环境下，多条线程多次执行doStart()方法
         if (!isRunning()) {
+          setLocalAddress();
           doStart();
           firstStart = running = true;
         }
@@ -47,7 +48,6 @@ public abstract class AbstractServer implements Server {
         if (LOGGER.isInfoEnabled()) {
           LOGGER.info("Start the server successfully. At " + LocalDateTime.now());
         }
-        setLocalAddress();
         afterServerStarted();
       }
     }
