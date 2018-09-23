@@ -75,6 +75,6 @@ public class ServiceExporter {
 //      }
       invokers.put(MethodSignUtils.getMethodSign(method), new MethodInvoker(method));
     }
-    return new ServiceProxy(instance, invokers);
+    return new ServiceProxy(serviceInterface, instance, invokers);
   }
 }

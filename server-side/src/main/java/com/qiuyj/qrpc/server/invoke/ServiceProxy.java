@@ -26,7 +26,11 @@ public class ServiceProxy {
   /** 异步调用的方法 */
   private Map<String, MethodInvoker> asyncMethods;
 
-  public ServiceProxy(Object instance, Map<String, MethodInvoker> methods) {
+  /** 服务接口 */
+  private final Class<?> serviceInterface;
+
+  public ServiceProxy(Class<?> serviceInterface, Object instance, Map<String, MethodInvoker> methods) {
+    this.serviceInterface = serviceInterface;
     serviceInstance = instance;
     methods.forEach((methodSign, methodInvoker) -> {
       // 异步执行的方法
@@ -65,7 +69,7 @@ public class ServiceProxy {
     ObjectMethods.ObjectMethod objMethod = ObjectMethods.INSTANCE.getObjectMethod(methodSign);
     if (Objects.nonNull(objMethod)) {
       try {
-        return objMethod.invoke(serviceInstance, args);
+        return objMethod.invoke(serviceInterface, serviceInstance, args);
       }
       catch (Exception e) {
         throw new RpcException(requestId, ErrorReason.EXECUTE_SERVICE_ERROR);

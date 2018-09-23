@@ -12,7 +12,7 @@ import java.util.Objects;
  * @author qiuyj
  * @since 2018-08-19
  */
-public class ObjectMethods {
+public final class ObjectMethods {
 
   /** 单例对象 */
   public static final ObjectMethods INSTANCE = new ObjectMethods();
@@ -148,7 +148,7 @@ public class ObjectMethods {
      * @param args 参数
      * @return 对应的方法返回值
      */
-    public abstract Object invoke(Object instance, Object... args) throws Exception;
+    public abstract Object invoke(Class<?> serviceInterface, Object instance, Object... args) throws Exception;
   }
 
   private static final class Equals extends ObjectMethod {
@@ -158,7 +158,7 @@ public class ObjectMethods {
     }
 
     @Override
-    public Boolean invoke(Object instance, Object... args) {
+    public Boolean invoke(Class<?> serviceInterface, Object instance, Object... args) {
       return instance.equals(args[0]);
     }
   }
@@ -170,7 +170,7 @@ public class ObjectMethods {
     }
 
     @Override
-    public Integer invoke(Object instance, Object... args) {
+    public Integer invoke(Class<?> serviceInterface, Object instance, Object... args) {
       return instance.hashCode();
     }
   }
@@ -182,8 +182,8 @@ public class ObjectMethods {
     }
 
     @Override
-    public String invoke(Object instance, Object... args) {
-      return instance.toString();
+    public String invoke(Class<?> serviceInterface, Object instance, Object... args) {
+      return serviceInterface.getName() + "@" + Integer.toHexString(instance.hashCode());
     }
   }
 
@@ -194,7 +194,7 @@ public class ObjectMethods {
     }
 
     @Override
-    public Object invoke(Object instance, Object... args) throws InvocationTargetException, IllegalAccessException {
+    public Object invoke(Class<?> serviceInterface, Object instance, Object... args) throws InvocationTargetException, IllegalAccessException {
       // 由于clone方法比较特殊，这里需要通过反射调用
       Method cloneMethod = null;
       try {
@@ -218,7 +218,7 @@ public class ObjectMethods {
     }
 
     @Override
-    public String invoke(Object instance, Object... args) {
+    public String invoke(Class<?> serviceInterface, Object instance, Object... args) {
       throw new UnsupportedOperationException("Method " + methodSign + " that in rpc environment is not executable.");
     }
   }
