@@ -6,9 +6,9 @@ import com.qiuyj.qrpc.codec.protocol.RpcMessage;
 import com.qiuyj.qrpc.commons.CloseChannelException;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.MessageToMessageDecoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.netty.handler.codec.ByteToMessageDecoder;
+import io.netty.util.internal.logging.InternalLogger;
+import io.netty.util.internal.logging.InternalLoggerFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -17,15 +17,16 @@ import java.util.Objects;
  * @author qiuyj
  * @since 2018-06-22
  */
-public class RpcMessageDecoder extends MessageToMessageDecoder<ByteBuf> {
+public class RpcMessageDecoder extends ByteToMessageDecoder /*MessageToMessageDecoder<ByteBuf>*/ {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(RpcMessageDecoder.class);
+  private static final InternalLogger LOGGER = InternalLoggerFactory.getInstance(RpcMessageDecoder.class);
 
   @Override
   protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) {
     // 将报文数据转储在自己数组里面
     byte[] b = new byte[msg.readableBytes()];
-    msg.getBytes(0, b);
+    msg.readBytes(b);
+//    msg.getBytes(0, b);
     // 从报文数据里面得到Codec的类型
     Codec codec = CodecUtils.DEFAULT_CODEC;
     // 解码报文数据得到RpcMessage对象
