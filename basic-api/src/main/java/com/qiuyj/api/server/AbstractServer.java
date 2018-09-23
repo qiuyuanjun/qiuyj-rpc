@@ -1,9 +1,13 @@
 package com.qiuyj.api.server;
 
+import com.qiuyj.api.Ipv4Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.time.LocalDateTime;
+import java.util.Objects;
 
 /**
  * @author qiuyj
@@ -15,6 +19,8 @@ public abstract class AbstractServer implements Server {
 
   /** 服务器运行状态 */
   private volatile boolean running;
+
+  private InetAddress localAddress;
 
   @Override
   public void start() {
@@ -41,7 +47,24 @@ public abstract class AbstractServer implements Server {
         if (LOGGER.isInfoEnabled()) {
           LOGGER.info("Start the server successfully. At " + LocalDateTime.now());
         }
+        setLocalAddress();
         afterServerStarted();
+      }
+    }
+  }
+
+  /**
+   * 设置服务器的本地ip地址
+   */
+  private void setLocalAddress() {
+    if (Objects.isNull(localAddress)) {
+      String serverIp = Ipv4Utils.getLocalAddress();
+      try {
+        localAddress = InetAddress.getByName(serverIp);
+      }
+      catch (UnknownHostException e) {
+        LOGGER.warn("Error getting server inet address. Use 127.0.0.1 instead.", e);
+        localAddress = InetAddress.getLoopbackAddress();
       }
     }
   }
@@ -57,6 +80,11 @@ public abstract class AbstractServer implements Server {
    * 启动服务器的具体逻辑，交给具体的子类实现
    */
   protected abstract void doStart();
+
+  @Override
+  public InetAddress getLocalAddress() {
+    return localAddress;
+  }
 
   @Override
   public void close() {

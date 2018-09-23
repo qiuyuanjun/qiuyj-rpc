@@ -1,6 +1,7 @@
 package com.qiuyj.qrpc.client;
 
 import com.qiuyj.api.Connection;
+import com.qiuyj.api.Ipv4Utils;
 import com.qiuyj.api.client.AbstractClient;
 import com.qiuyj.qrpc.client.proxy.ProxyFactory;
 import com.qiuyj.qrpc.client.proxy.jdk.JdkProxyFactory;
@@ -26,7 +27,7 @@ public abstract class AbstractRpcClient<T> extends AbstractClient implements Con
   private boolean lazyInitServiceInstance;
 
   /** 远程服务器的地址 */
-  private SocketAddress remoteServerAddress = new InetSocketAddress("127.0.0.1", 11221);
+  private SocketAddress remoteServerAddress = new InetSocketAddress(Ipv4Utils.getLocalAddress(), 11221);
 
   private ProxyFactory proxyFactory = new JdkProxyFactory();
 

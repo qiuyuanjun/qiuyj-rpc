@@ -1,6 +1,7 @@
 package com.qiuyj.api.server;
 
 import java.io.Closeable;
+import java.net.InetAddress;
 
 /**
  * 服务器抽象接口
@@ -26,6 +27,12 @@ public interface Server extends Closeable {
    * @return 服务器所绑定的端口
    */
   int getPort();
+
+  /**
+   * 得到当前服务器的真实可用的本地ip地址
+   * @return {@code InetAddress}对象
+   */
+  InetAddress getLocalAddress();
 
   /**
    * 判断服务器的状态

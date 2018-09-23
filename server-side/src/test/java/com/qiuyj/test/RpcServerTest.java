@@ -12,7 +12,7 @@ import com.qiuyj.test.service.impl.TestServiceImpl;
 public class RpcServerTest {
 
   public static void main(String[] args) {
-    ConfigurableRpcServer server = new NettyRpcServer(true);
+    ConfigurableRpcServer server = new NettyRpcServer();
     server.setServicePackageToScan("com.qiuyj.test.service");
     server.addServiceToExport(TestService.class, new TestServiceImpl());
     server.start();
