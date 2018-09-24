@@ -19,12 +19,15 @@ import java.util.concurrent.ExecutorService;
  */
 public class NettyRpcServer extends AbstractRpcServer {
 
+  /** netty服务器端启动类 */
   private ServerBootstrap nettyServerBootstrap;
 
+  /** 服务器端channel */
   private NioServerSocketChannel serverChannel;
 
   private ChannelGroup clients;
 
+  /** 服务器端启动之后是否阻塞启动线程，知道{@code serverChannel}关闭 */
   private final boolean sync;
 
   public NettyRpcServer() {
@@ -98,6 +101,8 @@ public class NettyRpcServer extends AbstractRpcServer {
 //        .childOption(ChannelOption.SO_KEEPALIVE, Boolean.TRUE)
         // 禁止nagel算法，防止tcp粘包
         .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
+        // 服务器端待接收客户端的连接的队列长度，超过这个数量的客户端连接会抛出异常
+        .childOption(ChannelOption.SO_BACKLOG, 1024)
         .childHandler(new NettyRpcChannelInitializer(asyncExecutor, serviceExporter));
     return serverBootstrap;
   }
