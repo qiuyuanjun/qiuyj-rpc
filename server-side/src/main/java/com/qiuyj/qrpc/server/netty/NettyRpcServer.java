@@ -27,7 +27,7 @@ public class NettyRpcServer extends AbstractRpcServer {
 
   private ChannelGroup clients;
 
-  /** 服务器端启动之后是否阻塞启动线程，知道{@code serverChannel}关闭 */
+  /** 服务器端启动之后是否阻塞启动线程，直到{@code serverChannel}关闭 */
   private final boolean sync;
 
   public NettyRpcServer() {
