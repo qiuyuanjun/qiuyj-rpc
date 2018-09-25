@@ -97,12 +97,12 @@ public class NettyRpcServer extends AbstractRpcServer {
     serverBootstrap.group(new NioEventLoopGroup(1), new NioEventLoopGroup())
         .channel(NioServerSocketChannel.class)
         .option(ChannelOption.SO_REUSEADDR, Boolean.TRUE)
-        // 以下属性，server端不支持设置，client才支持设置
-//        .childOption(ChannelOption.SO_KEEPALIVE, Boolean.TRUE)
+        // 服务器端待接收客户端的连接的队列长度，超过这个数量的客户端连接会抛出异常
+        .option(ChannelOption.SO_BACKLOG, 1024)
+        // 支持长连接
+        .childOption(ChannelOption.SO_KEEPALIVE, true)
         // 禁止nagel算法，防止tcp粘包
         .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
-        // 服务器端待接收客户端的连接的队列长度，超过这个数量的客户端连接会抛出异常
-        .childOption(ChannelOption.SO_BACKLOG, 1024)
         .childHandler(new NettyRpcChannelInitializer(asyncExecutor, serviceExporter));
     return serverBootstrap;
   }
