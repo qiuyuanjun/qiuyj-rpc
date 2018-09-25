@@ -36,23 +36,34 @@ public abstract class FastMethodInvoker {
     this.parameterTypes = parameterTypes;
   }
 
+  /**
+   * 执行对应的方法，此方法通过ASM框架动态生成
+   * @param instance 方法所属的对象
+   * @param methodIndex 方法下标
+   * @param args 方法参数
+   * @return 方法执行结果
+   */
   public abstract Object invoke(Object instance, int methodIndex, Object... args);
 
+  /**
+   * 得到对应的方法所属的下标
+   * @param methodName 方法名
+   * @param argsTypes 方法参数列表
+   * @return 对应的下标
+   */
   public int getMethodIndex(String methodName, Class<?>... argsTypes) {
-    boolean zeroParameter = false;
-    if (Objects.isNull(argsTypes) || argsTypes.length == 0) {
-      zeroParameter = true;
-    }
+    int argsLen = Objects.isNull(argsTypes) ? 0 : argsTypes.length;
     for (int i = 0; i < methodNames.length; i++) {
       if (methodNames[i].equals(methodName)) {
         Class<?>[] parameterTypes = this.parameterTypes[i];
-        if (parameterTypes.length == 0 && zeroParameter) {
+        if (parameterTypes.length == argsLen) {
           return i;
         }
         else {
-          int j = 0;
           boolean equals = true;
-          for (Class<?> type : parameterTypes) {
+          Class<?> type;
+          for (int j = 0; j < parameterTypes.length; j++) {
+            type = parameterTypes[j];
             if (argsTypes[j] != type || !type.isAssignableFrom(argsTypes[j])) {
               equals = false;
               break;
