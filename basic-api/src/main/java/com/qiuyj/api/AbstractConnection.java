@@ -19,7 +19,7 @@ public abstract class AbstractConnection implements Connection {
   /** 检测链路是否是空闲的定时器 */
   // 这里暂时没有想好，到底是所有客户端连接共享一个线程池好，还是每个客户端连接单独持有一个线程容量为1的线程池好
   // 在后续的编码过程中，会不断的验证完善
-  private static ScheduledExecutorService channelIdleStateChecker = Executors.newScheduledThreadPool(Runtime.getRuntime().availableProcessors() * 2);
+  private ScheduledExecutorService channelIdleStateChecker = Executors.newScheduledThreadPool(1);
 
   /** 上一次写数据的时间 */
   private long lastWriteTime;
@@ -56,6 +56,10 @@ public abstract class AbstractConnection implements Connection {
     if (Objects.nonNull(client)) {
       client = null;
     }
+    if (!channelIdleStateChecker.isShutdown()) {
+      channelIdleStateChecker.shutdown();
+    }
+    channelIdleStateChecker = null;
   }
 
   /**
