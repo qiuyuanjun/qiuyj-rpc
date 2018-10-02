@@ -7,6 +7,7 @@ module qrpc.client {
   requires qrpc.commons;
   requires io.netty.all;
   requires qrpc.codec;
+  requires qrpc.registry;
 
   exports com.qiuyj.qrpc.client;
   exports com.qiuyj.qrpc.client.netty;

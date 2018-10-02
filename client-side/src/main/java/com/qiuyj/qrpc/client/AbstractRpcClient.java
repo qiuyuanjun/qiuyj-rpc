@@ -5,6 +5,7 @@ import com.qiuyj.api.Ipv4Utils;
 import com.qiuyj.api.client.AbstractClient;
 import com.qiuyj.qrpc.client.proxy.ProxyFactory;
 import com.qiuyj.qrpc.client.proxy.jdk.JdkProxyFactory;
+import com.qiuyj.qrpc.registry.ServiceRegistry;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -29,7 +30,11 @@ public abstract class AbstractRpcClient<T> extends AbstractClient implements Con
   /** 远程服务器的地址 */
   private InetSocketAddress remoteServerAddress = new InetSocketAddress(Ipv4Utils.getLocalAddress(), 11221);
 
+  /** 代理工厂 */
   private ProxyFactory proxyFactory = new JdkProxyFactory();
+
+  /** 注册中心 */
+  private ServiceRegistry serviceRegistry;
 
   protected AbstractRpcClient() {
     // for subclass
