@@ -6,8 +6,8 @@ import com.qiuyj.api.client.AbstractClient;
 import com.qiuyj.qrpc.client.proxy.ProxyFactory;
 import com.qiuyj.qrpc.client.proxy.jdk.JdkProxyFactory;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.net.SocketAddress;
 import java.util.Objects;
 
 /**
@@ -27,7 +27,7 @@ public abstract class AbstractRpcClient<T> extends AbstractClient implements Con
   private boolean lazyInitServiceInstance;
 
   /** 远程服务器的地址 */
-  private SocketAddress remoteServerAddress = new InetSocketAddress(Ipv4Utils.getLocalAddress(), 11221);
+  private InetSocketAddress remoteServerAddress = new InetSocketAddress(Ipv4Utils.getLocalAddress(), 11221);
 
   private ProxyFactory proxyFactory = new JdkProxyFactory();
 
@@ -98,7 +98,15 @@ public abstract class AbstractRpcClient<T> extends AbstractClient implements Con
     lazyInitServiceInstance = true;
   }
 
-  protected SocketAddress getRemoteServerAddress() {
+  @Override
+  public InetAddress getRemoteAddress() {
+    return remoteServerAddress.getAddress();
+  }
+
+  /**
+   * 得到与远程rpc服务器连接的{@code InetSocketAddress}对象，供子类使用
+   */
+  protected InetSocketAddress getRemoteServerAddress() {
     return remoteServerAddress;
   }
 

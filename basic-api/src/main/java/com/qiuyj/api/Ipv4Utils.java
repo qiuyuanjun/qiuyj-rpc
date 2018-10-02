@@ -17,6 +17,7 @@ public abstract class Ipv4Utils {
   private static final Pattern IP_PATTERN = Pattern.compile("^\\d{1,3}(\\.\\d{1,3}){3}$");
 
   private static final String LOCAL_ADDRESS;
+  private static InetAddress LOCAL_INET_ADDRESS;
   static {
     InetAddress inetAddress = null;
     try {
@@ -31,6 +32,16 @@ public abstract class Ipv4Utils {
     else {
       LOCAL_ADDRESS = getFirstValidLocalAddress();
     }
+    if (Objects.isNull(inetAddress)) {
+      try {
+        inetAddress = InetAddress.getByName(LOCAL_ADDRESS);
+      }
+      catch (UnknownHostException e) {
+        // print stack trace and ingore
+        e.printStackTrace();
+      }
+    }
+    LOCAL_INET_ADDRESS = Objects.isNull(inetAddress) ? InetAddress.getLoopbackAddress() : inetAddress;
   }
 
   /**
@@ -38,6 +49,13 @@ public abstract class Ipv4Utils {
    */
   public static String getLocalAddress() {
     return LOCAL_ADDRESS;
+  }
+
+  /**
+   * 得到本机的ip地址的{@code InetAddress}对象表示
+   */
+  public static InetAddress getLocalInetAddress() {
+    return LOCAL_INET_ADDRESS;
   }
 
   /**

@@ -1,10 +1,12 @@
 package com.qiuyj.api.client;
 
 import com.qiuyj.api.Connection;
+import com.qiuyj.api.Ipv4Utils;
 import com.qiuyj.api.ThrowableUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.InetAddress;
 import java.time.LocalDateTime;
 import java.util.Objects;
 
@@ -120,6 +122,11 @@ public abstract class AbstractClient implements ConfigurableClient {
         }
       }
     }
+  }
+
+  @Override
+  public InetAddress getLocalAddress() {
+    return Ipv4Utils.getLocalInetAddress();
   }
 
   /**
