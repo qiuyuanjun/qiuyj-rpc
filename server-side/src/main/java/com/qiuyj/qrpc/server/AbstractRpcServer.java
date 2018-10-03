@@ -91,11 +91,6 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
   protected abstract void closeInternal();
 
   @Override
-  public RpcContext getContext() {
-    return null;
-  }
-
-  @Override
   public void setServiceInstanceProvider(ServiceInstanceProvider serviceInstanceProvider) {
     this.serviceInstanceProvider = serviceInstanceProvider;
   }

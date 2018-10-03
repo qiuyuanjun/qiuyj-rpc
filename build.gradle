@@ -40,6 +40,7 @@ subprojects {
   ext {
     nettyVersion = "4.1.25.Final"
     log4j2Version = "2.11.0"
+    curatorVersion = "4.0.1"
   }
 
   dependencies {
