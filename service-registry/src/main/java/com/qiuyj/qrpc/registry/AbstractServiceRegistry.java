@@ -64,7 +64,7 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
             doRegister(serviceInstance);
           }
         }
-      }, "Loop-to-get-the-registered-service-thread").start();
+      }, "Register-service-thread").start();
     }
     else {
       throw new IllegalStateException("Only one service registry can be created. Except STATE[SHUTDOWN]. For STATE[" + STATE + "]");
