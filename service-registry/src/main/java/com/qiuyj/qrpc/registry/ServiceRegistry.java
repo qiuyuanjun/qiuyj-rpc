@@ -1,5 +1,6 @@
 package com.qiuyj.qrpc.registry;
 
+import java.io.Closeable;
 import java.util.List;
 
 /**
@@ -7,7 +8,7 @@ import java.util.List;
  * @author qiuyj
  * @since 2018-09-23
  */
-public interface ServiceRegistry {
+public interface ServiceRegistry extends Closeable {
 
   /**
    * 得到所有已经注册的服务
@@ -26,4 +27,10 @@ public interface ServiceRegistry {
    * @param serviceInstance 服务实例
    */
   void unregister(ServiceInstance serviceInstance);
+
+  /**
+   * 关闭服务注册中心
+   */
+  @Override
+  void close();
 }

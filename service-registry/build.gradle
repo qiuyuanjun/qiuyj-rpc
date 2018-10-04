@@ -1,7 +1,8 @@
 dependencies {
-  compile("org.apache.curator:curator-framework:${curatorVersion}") {
-    exclude group: "log4j"
-    exclude group: "io.netty"
+//  compile("org.apache.curator:curator-framework:${curatorVersion}") {
+//    exclude group: "org.apache.zookeeper"
+//  }
+  compile("org.apache.curator:curator-recipes:${curatorVersion}") {
     exclude group: "org.apache.zookeeper"
   }
   compile("org.apache.zookeeper:zookeeper:${zookeeperVersion}") {
