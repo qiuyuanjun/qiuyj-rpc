@@ -53,7 +53,7 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
             serviceInstance = waitingForRegister.take();
           }
           catch (InterruptedException e) {
-            if (--timesThatAllowedToBeInterrupted > 0) {
+            if (timesThatAllowedToBeInterrupted-- > 0) {
               LOGGER.error("Error while taking element from blocking queue.", e);
             }
             else {
