@@ -1,5 +1,7 @@
 package com.qiuyj.qrpc.registry;
 
+import java.util.Objects;
+
 /**
  * @author qiuyj
  * @since 2018-09-23
@@ -48,5 +50,25 @@ public class ServiceInstance {
 
   public void setPort(int port) {
     this.port = port;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
+    ServiceInstance that = (ServiceInstance) o;
+    return port == that.port &&
+        Objects.equals(serviceName, that.serviceName) &&
+        Objects.equals(version, that.version) &&
+        Objects.equals(ip, that.ip);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(serviceName, version, ip, port);
   }
 }

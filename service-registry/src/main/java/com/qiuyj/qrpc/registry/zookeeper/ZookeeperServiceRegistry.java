@@ -19,7 +19,13 @@ public class ZookeeperServiceRegistry extends AbstractServiceRegistry {
   private CuratorFramework zkClient;
 
   @Override
-  protected void doRegister(ServiceInstance serviceInstance) {
+  protected boolean doRegister(ServiceInstance serviceInstance) {
+
+    return true;
+  }
+
+  @Override
+  protected void doUnregister(ServiceInstance serviceInstance) {
 
   }
 

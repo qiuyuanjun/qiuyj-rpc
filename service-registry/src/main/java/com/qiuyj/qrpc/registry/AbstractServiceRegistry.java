@@ -3,11 +3,10 @@ package com.qiuyj.qrpc.registry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -24,12 +23,20 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
   private static final AtomicReference<ServiceRegistryState> STATE = new AtomicReference<>(ServiceRegistryState.SHUTDOWN);
 
   /**
-   * 等待注册到注册中心的服务队列，默认容量为512
+   * 等待注册到注册中心的服务队列，默认容量为128
    */
-  private final BlockingQueue<ServiceInstance> waitingForRegister = new ArrayBlockingQueue<>(512);
+  private final BlockingQueue<ServiceInstance> waitingForRegister = new ArrayBlockingQueue<>(128);
+
+  /**
+   * 等待从注册中心注销的服务队列，默认容量为128
+   */
+  private final BlockingQueue<ServiceInstance> waitingForUnregister = new ArrayBlockingQueue<>(128);
 
   /** 所有已经注册了的服务的{@code ServiceInstance}对象 */
   private List<ServiceInstance> serviceInstances;
+
+  /** 未注册成功的{@code ServiceInstance}对象 */
+  private Set<ServiceInstance> incomplateServiceInstances = Collections.newSetFromMap(new ConcurrentHashMap<>(128));
 
   protected AbstractServiceRegistry() {
     // 服务注册中心启动，必须判定shutdown为true
@@ -40,42 +47,96 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
       // 连接服务注册中心
       connect(new HostPortPair(host, port));
       serviceInstances = new ArrayList<>();
-      // 开启注册服务的线程
       NamedThreadFactory threadFactory = new NamedThreadFactory();
-      threadFactory.newThread(() -> {
-        // 允许被中断的次数为三次
-        int timesThatAllowedToBeInterrupted = 3;
-        while (STATE.get() == ServiceRegistryState.RUNNING) {
-          // 从阻塞队列里面取出一个待注册的服务来，如果阻塞队列里面没有待注册的服务
-          // 那么这里将一直阻塞
-          ServiceInstance serviceInstance = null;
-          try {
-            serviceInstance = waitingForRegister.take();
-          }
-          catch (InterruptedException e) {
-            if (timesThatAllowedToBeInterrupted-- > 0) {
-              LOGGER.error("Error while taking element from blocking queue.", e);
-            }
-            else {
-              Thread.currentThread().interrupt();
-            }
-          }
-          if (Objects.nonNull(serviceInstance)) {
-            doRegister(serviceInstance);
-          }
-        }
-      }, "Register-service-thread").start();
+      // 开启服务注册的线程
+      startRegisterServiceThread(threadFactory);
+      // 开启服务注销的线程
+      startUnregisterServiceThread(threadFactory);
     }
     else {
-      throw new IllegalStateException("Only one service registry can be created. Except STATE[SHUTDOWN]. For STATE[" + STATE + "]");
+      throw new IllegalStateException("Only one service registry can be created. Except STATE[SHUTDOWN],but STATE[" + STATE + "]");
     }
   }
 
   /**
-   * 具体的服务注册的实现方法，交个对应的子类去实现
+   * 单独开一条线程，内部判断{@code STATE}的状态，如果是{@link ServiceRegistryState#RUNNING}
+   * 那么，内部一直循环，并且从阻塞队列里面获取待注册的服务，注册到服务注册中心
+   * @param threadFactory 线程工厂
+   */
+  private void startRegisterServiceThread(NamedThreadFactory threadFactory) {
+    threadFactory.newThread(() -> {
+      // 允许被中断的次数为三次
+      int timesThatAllowedToBeInterrupted = 3;
+      while (AbstractServiceRegistry.STATE.get() == AbstractServiceRegistry.ServiceRegistryState.RUNNING) {
+        // 从阻塞队列里面取出一个待注册的服务来，如果阻塞队列里面没有待注册的服务
+        // 那么这里将一直阻塞
+        ServiceInstance serviceInstance = null;
+        try {
+          serviceInstance = AbstractServiceRegistry.this.waitingForRegister.take();
+        }
+        catch (InterruptedException e) {
+          if (timesThatAllowedToBeInterrupted-- > 0) {
+            AbstractServiceRegistry.LOGGER.error("Error while taking element from blocking queue.", e);
+          }
+          else {
+            Thread.currentThread().interrupt();
+          }
+        }
+        if (Objects.nonNull(serviceInstance)) {
+          if (AbstractServiceRegistry.this.doRegister(serviceInstance)) {
+            AbstractServiceRegistry.this.serviceInstances.add(serviceInstance);
+            AbstractServiceRegistry.this.incomplateServiceInstances.remove(serviceInstance);
+          }
+          else {
+            AbstractServiceRegistry.this.incomplateServiceInstances.add(serviceInstance);
+          }
+        }
+      }
+    }, "Register-service-thread").start();
+  }
+
+  /**
+   * 单独开一条线程，内部判断{@code STATE}的状态，如果是{@link ServiceRegistryState#RUNNING}
+   * 那么，内部一直循环，并且从阻塞队列里面获取待注销的服务，从服务注册中心注销掉
+   * @param threadFactory 线程工厂
+   */
+  private void startUnregisterServiceThread(NamedThreadFactory threadFactory) {
+    threadFactory.newThread(() -> {
+      // 允许被中断的次数为三次
+      int timesThatAllowedToBeInterrupted = 3;
+      while (AbstractServiceRegistry.STATE.get() == AbstractServiceRegistry.ServiceRegistryState.RUNNING) {
+        ServiceInstance serviceInstance = null;
+        try {
+          serviceInstance = AbstractServiceRegistry.this.waitingForUnregister.take();
+        }
+        catch (InterruptedException e) {
+          if (timesThatAllowedToBeInterrupted-- > 0) {
+            AbstractServiceRegistry.LOGGER.error("Error while taking element from blocking queue.", e);
+          }
+          else {
+            Thread.currentThread().interrupt();
+          }
+        }
+        if (Objects.nonNull(serviceInstance)) {
+          AbstractServiceRegistry.this.doUnregister(serviceInstance);
+          AbstractServiceRegistry.this.serviceInstances.remove(serviceInstance);
+          AbstractServiceRegistry.this.incomplateServiceInstances.remove(serviceInstance);
+        }
+      }
+    }, "Unregister-service-thread").start();
+  }
+
+  /**
+   * 具体的服务注册的实现方法，交给对应的子类去实现
    * @param serviceInstance 待注册的服务信息
    */
-  protected abstract void doRegister(ServiceInstance serviceInstance);
+  protected abstract boolean doRegister(ServiceInstance serviceInstance);
+
+  /**
+   * 具体的服务注销的实现方法，交给对应的子类去实现
+   * @param serviceInstance 待注销的服务信息
+   */
+  protected abstract void doUnregister(ServiceInstance serviceInstance);
 
   /**
    * 连接服务注册中心，交给具体的子类处理
@@ -86,11 +147,15 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
 
   @Override
   public List<ServiceInstance> registeredServiceInstances() {
-    return serviceInstances;
+    return Collections.unmodifiableList(serviceInstances);
   }
 
   @Override
   public void register(ServiceInstance serviceInstance) {
+    Objects.requireNonNull(serviceInstance, "serviceInstance == null");
+    if (waitingForRegister.contains(serviceInstance) || serviceInstances.contains(serviceInstance)) {
+      throw new ServiceRegistryException("The service to be registered already exists.");
+    }
     try {
       waitingForRegister.put(serviceInstance);
     }
@@ -102,12 +167,24 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
 
   @Override
   public void unregister(ServiceInstance serviceInstance) {
-
+    Objects.requireNonNull(serviceInstance, "serviceInstance == null");
+    if (!serviceInstances.contains(serviceInstance) || !incomplateServiceInstances.contains(serviceInstance)) {
+      throw new ServiceRegistryException("The service to be unregistered not exists.");
+    }
+    try {
+      waitingForUnregister.put(serviceInstance);
+    }
+    catch (InterruptedException e) {
+      // 这种情况一般不会发生
+      LOGGER.error("Error while puting element to blocking queue.", e);
+    }
   }
 
   @Override
   public void close() {
     waitingForRegister.clear();
+    waitingForUnregister.clear();
+    incomplateServiceInstances.clear();
     if (Objects.nonNull(serviceInstances)) {
       serviceInstances.clear();
       serviceInstances = null;
