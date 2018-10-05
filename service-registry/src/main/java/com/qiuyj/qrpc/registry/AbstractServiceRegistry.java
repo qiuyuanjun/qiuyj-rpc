@@ -82,7 +82,7 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
             Thread.currentThread().interrupt();
           }
         }
-        if (Objects.nonNull(serviceInstance)) {
+        if (Objects.nonNull(serviceInstance) && serviceInstance != ServiceInstance.EMPTY_SERVICE_INSTANCE) {
           if (AbstractServiceRegistry.this.doRegister(serviceInstance)) {
             AbstractServiceRegistry.this.serviceInstances.add(serviceInstance);
             AbstractServiceRegistry.this.incomplateServiceInstances.remove(serviceInstance);
@@ -117,7 +117,7 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
             Thread.currentThread().interrupt();
           }
         }
-        if (Objects.nonNull(serviceInstance)) {
+        if (Objects.nonNull(serviceInstance) && serviceInstance != ServiceInstance.EMPTY_SERVICE_INSTANCE) {
           AbstractServiceRegistry.this.doUnregister(serviceInstance);
           AbstractServiceRegistry.this.serviceInstances.remove(serviceInstance);
           AbstractServiceRegistry.this.incomplateServiceInstances.remove(serviceInstance);
@@ -184,6 +184,15 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
   public void close() {
     waitingForRegister.clear();
     waitingForUnregister.clear();
+
+    /*
+     * 由于注册线程会一直阻塞
+     * 所以在服务注册中心关闭的时候，注册线程会一直阻塞
+     * 所以关闭的时候需要手动往阻塞队列里面加入这个对象从而唤醒被阻塞的线程
+     */
+    register(ServiceInstance.EMPTY_SERVICE_INSTANCE);
+    unregister(ServiceInstance.EMPTY_SERVICE_INSTANCE);
+
     incomplateServiceInstances.clear();
     if (Objects.nonNull(serviceInstances)) {
       serviceInstances.clear();

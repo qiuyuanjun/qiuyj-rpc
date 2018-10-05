@@ -8,6 +8,14 @@ import java.util.Objects;
  */
 public class ServiceInstance {
 
+  /**
+   * 空的{@code ServiceInstnace}对象
+   * 用于服务注册的时候，由于注册线程会一直阻塞
+   * 所以在服务注册中心关闭的时候，注册线程会一直阻塞
+   * 所以关闭的时候需要手动往阻塞队列里面加入这个对象从而唤醒被阻塞的线程
+   */
+  static final ServiceInstance EMPTY_SERVICE_INSTANCE = new ServiceInstance();
+
   /** 服务名（一般指接口全限定类名） */
   private String serviceName;
 
