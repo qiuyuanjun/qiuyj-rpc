@@ -184,6 +184,13 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
   public void close() {
     waitingForRegister.clear();
     waitingForUnregister.clear();
+    incomplateServiceInstances.clear();
+    if (Objects.nonNull(serviceInstances)) {
+      serviceInstances.clear();
+      serviceInstances = null;
+    }
+    doClose();
+    STATE.getAndSet(ServiceRegistryState.SHUTDOWN);
 
     /*
      * 由于注册线程会一直阻塞
@@ -192,14 +199,6 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
      */
     register(ServiceInstance.EMPTY_SERVICE_INSTANCE);
     unregister(ServiceInstance.EMPTY_SERVICE_INSTANCE);
-
-    incomplateServiceInstances.clear();
-    if (Objects.nonNull(serviceInstances)) {
-      serviceInstances.clear();
-      serviceInstances = null;
-    }
-    doClose();
-    STATE.getAndSet(ServiceRegistryState.SHUTDOWN);
   }
 
   /**
