@@ -5,6 +5,9 @@ import com.qiuyj.commons.StringUtils;
 import com.qiuyj.commons.resource.ClassSeeker;
 import com.qiuyj.qrpc.commons.instantiation.ObjectFactory;
 import com.qiuyj.qrpc.commons.instantiation.ServiceInstanceProvider;
+import com.qiuyj.qrpc.registry.ServiceInstance;
+import com.qiuyj.qrpc.registry.ServiceRegistry;
+import com.qiuyj.qrpc.registry.ServiceRegistryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,6 +45,9 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
   /** 异步任务执行线程池 */
   private ExecutorService asyncExecutor;
 
+  /** 服务注册中心 */
+  private ServiceRegistry serviceRegistry;
+
   @Override
   protected void doStart() {
     if (LOGGER.isInfoEnabled()) {
@@ -58,10 +64,27 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
     serviceToExports.putAll(resolveServiceInstance(serviceInterfaces, provider));
     // 暴露服务，将服务封装成ServiceProxy对象
     ServiceExporter serviceExporter = new ServiceExporter(serviceToExports.values());
-    // TODO 将服务器注册到服务注册中心
-
+    // 通过ServiceRegistryFactory获取具体对应的ServiceRegistry
+    serviceRegistry = ServiceRegistryFactory.getServiceRegistry();
+    // 将服务器注册到服务注册中心
+    registerServices();
     // 启动服务器
     startInternal(serviceExporter);
+  }
+
+  /**
+   * 将所有需要暴露的服务注册到服务注册中心
+   */
+  private void registerServices() {
+    Map<Class<?>, ClassInstanceValue<?>> serviceInstanceMap = this.serviceToExports;
+    serviceInstanceMap.forEach((key, value) -> {
+      ServiceInstance serviceInstance = new ServiceInstance();
+      serviceInstance.setIp(getLocalAddress().getHostAddress());
+      serviceInstance.setPort(getPort());
+      serviceInstance.setServiceName(key.getName());
+      serviceInstance.setVersion("1.0.0");
+      serviceRegistry.register(serviceInstance);
+    });
   }
 
   /**

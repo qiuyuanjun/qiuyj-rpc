@@ -9,6 +9,7 @@ module qrpc.server {
   requires qrpc.codec;
   requires io.netty.all;
   requires qiuyj.commons;
+  requires qrpc.registry;
 
   exports com.qiuyj.qrpc.server.annotation;
   exports com.qiuyj.qrpc.server.interceptor;
