@@ -1,5 +1,9 @@
 package com.qiuyj.qrpc.server;
 
+import com.qiuyj.commons.AnnotationUtils;
+import com.qiuyj.qrpc.commons.annotation.RpcService;
+import com.qiuyj.qrpc.registry.ServiceInstance;
+
 import java.util.Objects;
 
 /**
@@ -13,13 +17,17 @@ public class ClassInstanceValue<T> {
 
   private T instance;
 
+  /** 当前服务接口所注解的@RpcService注解实例 */
+  private RpcService rpcService;
+
   private ClassInstanceValue() {
     // for inner usages
   }
 
-  public ClassInstanceValue(Class<? super T> serviceInterface, T instance) {
+  public ClassInstanceValue(Class<? super T> serviceInterface, T instance, RpcService rpcService) {
     this.serviceInterface = serviceInterface;
     this.instance = instance;
+    this.rpcService = rpcService;
   }
 
   public Class<? super T> getServiceInterface() {
@@ -36,6 +44,20 @@ public class ClassInstanceValue<T> {
 
   public void setInstance(Object instance) {
     this.instance = (T) instance;
+  }
+
+  public void setRpcService(RpcService rpcService) {
+    this.rpcService = rpcService;
+  }
+
+  /**
+   * 设置服务注册相关的一些公共信息，比如应用名称，服务接口版本号，权重等等
+   * @param serviceInstance {@code ServiceInstance}对象
+   */
+  void setRegistryInfo(ServiceInstance serviceInstance) {
+    serviceInstance.setVersion(rpcService.version());
+    // applicationName
+    // weight
   }
 
   @Override
@@ -70,9 +92,14 @@ public class ClassInstanceValue<T> {
       throw new IllegalArgumentException("Instance == null.");
     }
     else if (serviceInterface.isInstance(instance)) {
+      RpcService rpcService = AnnotationUtils.findAnnotation(serviceInterface, RpcService.class);
+      if (Objects.isNull(rpcService)) {
+        throw new IllegalStateException("Service interface must be annotated @RpcService annotation");
+      }
       ClassInstanceValue<?> result = new ClassInstanceValue<>();
       result.setServiceInterface(serviceInterface);
       result.setInstance(instance);
+      result.setRpcService(rpcService);
       return result;
     }
     else {

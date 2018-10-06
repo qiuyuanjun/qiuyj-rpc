@@ -13,7 +13,12 @@ import java.util.function.Predicate;
  */
 public class RpcServicePredicate implements Predicate<Class<?>> {
 
-  public static final RpcServicePredicate INSTANCE = new RpcServicePredicate();
+  /** 默认实现 */
+  private static final RpcServicePredicate INSTANCE = new RpcServicePredicate();
+
+  private RpcServicePredicate() {
+    // for private
+  }
 
   @Override
   public boolean test(Class<?> cls) {
@@ -25,5 +30,9 @@ public class RpcServicePredicate implements Predicate<Class<?>> {
         !cls.isAnnotation() && AnnotationUtils.hasAnnotation(cls, RpcService.class) :
         !cls.isEnum() && !Modifier.isAbstract(cls.getModifiers()) && !cls.isSynthetic()
             && AnnotationUtils.hasAnnotation(cls, RpcServiceImpl.class);
+  }
+
+  public static RpcServicePredicate getInstance() {
+    return INSTANCE;
   }
 }

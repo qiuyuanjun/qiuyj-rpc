@@ -1,8 +1,10 @@
 package com.qiuyj.qrpc.server;
 
 import com.qiuyj.api.server.AbstractServer;
+import com.qiuyj.commons.AnnotationUtils;
 import com.qiuyj.commons.StringUtils;
 import com.qiuyj.commons.resource.ClassSeeker;
+import com.qiuyj.qrpc.commons.annotation.RpcService;
 import com.qiuyj.qrpc.commons.instantiation.ObjectFactory;
 import com.qiuyj.qrpc.commons.instantiation.ServiceInstanceProvider;
 import com.qiuyj.qrpc.registry.ServiceInstance;
@@ -23,8 +25,6 @@ import java.util.stream.Collectors;
 public abstract class AbstractRpcServer extends AbstractServer implements ConfigurableRpcServer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(AbstractRpcServer.class);
-
-  private static final String[] EMPTY_STRING_ARRAY = new String[0];
 
   /** rpc服务器的默认端口 */
   public static final int DEFAULT_PORT = 11221;
@@ -82,7 +82,7 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
       serviceInstance.setIp(getLocalAddress().getHostAddress());
       serviceInstance.setPort(getPort());
       serviceInstance.setServiceName(key.getName());
-      serviceInstance.setVersion("1.0.0");
+      value.setRegistryInfo(serviceInstance);
       serviceRegistry.register(serviceInstance);
     });
   }
@@ -154,7 +154,11 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
     else if (Objects.isNull(instance)) {
       throw new IllegalArgumentException("instance == null.");
     }
-    ClassInstanceValue<?> prev = serviceToExports.putIfAbsent(serviceInterface, new ClassInstanceValue<>(serviceInterface, instance));
+    RpcService rpcServiceAnnotation = AnnotationUtils.findAnnotation(serviceInterface, RpcService.class);
+    if (Objects.isNull(rpcServiceAnnotation)) {
+      throw new IllegalStateException("Service interface must be annotated @RpcService annotation");
+    }
+    ClassInstanceValue<?> prev = serviceToExports.putIfAbsent(serviceInterface, new ClassInstanceValue<>(serviceInterface, instance, rpcServiceAnnotation));
     if (Objects.nonNull(prev)) {
       throw new ServiceExistException(prev);
     }
@@ -188,7 +192,7 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
     Set<Class<?>> classSet = new HashSet<>();
     if (Objects.nonNull(servicePackages) && servicePackages.length > 0) {
       ClassSeeker classSeeker = new ClassSeeker(AbstractRpcServer.class.getClassLoader());
-      classSeeker.setIfCondition(RpcServicePredicate.INSTANCE);
+      classSeeker.setIfCondition(RpcServicePredicate.getInstance());
       for (String s : servicePackages) {
         if (LOGGER.isDebugEnabled()) {
           LOGGER.debug("Scanning package: " + s);

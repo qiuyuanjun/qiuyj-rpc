@@ -14,4 +14,18 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 public @interface RpcService {
 
+  /**
+   * 当前服务所属的应用名称，必填
+   */
+  String application();
+
+  /**
+   * 服务的版本号，可选
+   */
+  String version() default "1.0.0";
+
+  /**
+   * 服务的权重，1-10之间，值越大，将接收更多的请求
+   */
+  int weight() default 5;
 }
