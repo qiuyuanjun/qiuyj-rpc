@@ -9,7 +9,7 @@ import io.netty.channel.Channel;
  * @author qiuyj
  * @since 2018-09-18
  */
-class NettyChannelAttachedRequestInfo extends RequestInfo {
+public class NettyChannelAttachedRequestInfo extends RequestInfo {
 
   private static final long serialVersionUID = 764110566377818179L;
 
