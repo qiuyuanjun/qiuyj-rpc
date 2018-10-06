@@ -4,7 +4,7 @@ import com.qiuyj.commons.ClassUtils;
 import com.qiuyj.qrpc.commons.ErrorReason;
 import com.qiuyj.qrpc.commons.RpcException;
 import com.qiuyj.qrpc.codec.protocol.RequestInfo;
-import com.qiuyj.qrpc.server.ServiceExporter;
+import com.qiuyj.qrpc.server.invoke.ServiceExporter;
 import com.qiuyj.qrpc.server.invoke.ServiceProxy;
 
 import java.util.Objects;

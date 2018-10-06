@@ -1,10 +1,11 @@
-package com.qiuyj.qrpc.server;
+package com.qiuyj.qrpc.server.invoke;
 
 import com.qiuyj.qrpc.commons.ErrorReason;
 import com.qiuyj.qrpc.commons.MethodSignUtils;
 import com.qiuyj.qrpc.commons.ObjectMethods;
 import com.qiuyj.qrpc.commons.RpcException;
 import com.qiuyj.qrpc.codec.protocol.RequestInfo;
+import com.qiuyj.qrpc.server.ClassInstanceValue;
 import com.qiuyj.qrpc.server.invoke.MethodInvoker;
 import com.qiuyj.qrpc.server.invoke.ServiceProxy;
 

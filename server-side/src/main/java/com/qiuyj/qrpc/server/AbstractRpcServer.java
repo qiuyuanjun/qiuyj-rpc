@@ -10,6 +10,7 @@ import com.qiuyj.qrpc.commons.instantiation.ServiceInstanceProvider;
 import com.qiuyj.qrpc.registry.ServiceInstance;
 import com.qiuyj.qrpc.registry.ServiceRegistry;
 import com.qiuyj.qrpc.registry.ServiceRegistryFactory;
+import com.qiuyj.qrpc.server.invoke.ServiceExporter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
