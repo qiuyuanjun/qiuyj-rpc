@@ -1,12 +1,15 @@
 package com.qiuyj.qrpc.registry;
 
-import java.util.Objects;
+import com.qiuyj.qrpc.registry.metadata.VersionAndWeightRegistration;
+import com.qiuyj.qrpc.registry.metadata.VersionAndWeightRegistrationMetadata;
 
 /**
  * @author qiuyj
  * @since 2018-09-23
  */
-public class ServiceInstance {
+public class ServiceInstance extends VersionAndWeightRegistrationMetadata {
+
+  private static final long serialVersionUID = -8411208890926458740L;
 
   /**
    * 空的{@code ServiceInstnace}对象
@@ -16,67 +19,30 @@ public class ServiceInstance {
    */
   static final ServiceInstance EMPTY_SERVICE_INSTANCE = new ServiceInstance();
 
-  /** 服务名（一般指接口全限定类名） */
-  private String serviceName;
+  /** 当前服务接口所属的应用名称 */
+  private String applicationName;
 
-  /** 服务版本 */
-  private String version;
-
-  /** 服务所处服务器的ip */
-  private String ip;
-
-  /** 服务所处的服务器的port */
-  private int port;
-
-  public String getServiceName() {
-    return serviceName;
+  public ServiceInstance() {
+    // empty body
   }
 
-  public void setServiceName(String serviceName) {
-    this.serviceName = serviceName;
+  public String getApplicationName() {
+    return applicationName;
   }
 
-  public String getVersion() {
-    return version;
+  public void setApplicationName(String applicationName) {
+    this.applicationName = applicationName;
   }
 
-  public void setVersion(String version) {
-    this.version = version;
+  // -- for internal useage --
+  // @see {@link AbstractServiceRegistry}
+  ServiceInstance(VersionAndWeightRegistration registration, String applicationName) {
+    setWeight(registration.getWeight());
+    setVersion(registration.getVersion());
+    setName(registration.getName());
+    setIpAddress(registration.getIpAddress());
+    setPort(registration.getPort());
+    setApplicationName(applicationName);
   }
 
-  public String getIp() {
-    return ip;
-  }
-
-  public void setIp(String ip) {
-    this.ip = ip;
-  }
-
-  public int getPort() {
-    return port;
-  }
-
-  public void setPort(int port) {
-    this.port = port;
-  }
-
-  @Override
-  public boolean equals(Object o) {
-    if (this == o) {
-      return true;
-    }
-    if (o == null || getClass() != o.getClass()) {
-      return false;
-    }
-    ServiceInstance that = (ServiceInstance) o;
-    return port == that.port &&
-        Objects.equals(serviceName, that.serviceName) &&
-        Objects.equals(version, that.version) &&
-        Objects.equals(ip, that.ip);
-  }
-
-  @Override
-  public int hashCode() {
-    return Objects.hash(serviceName, version, ip, port);
-  }
 }

@@ -55,9 +55,12 @@ public class ClassInstanceValue<T> {
    * @param serviceInstance {@code ServiceInstance}对象
    */
   void setRegistryInfo(ServiceInstance serviceInstance) {
+    // version
     serviceInstance.setVersion(rpcService.version());
     // applicationName
+    serviceInstance.setApplicationName(rpcService.application());
     // weight
+    serviceInstance.setWeight(rpcService.weight());
   }
 
   @Override

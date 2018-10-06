@@ -80,9 +80,9 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
     Map<Class<?>, ClassInstanceValue<?>> serviceInstanceMap = this.serviceToExports;
     serviceInstanceMap.forEach((key, value) -> {
       ServiceInstance serviceInstance = new ServiceInstance();
-      serviceInstance.setIp(getLocalAddress().getHostAddress());
+      serviceInstance.setIpAddress(getLocalAddress().getHostAddress());
       serviceInstance.setPort(getPort());
-      serviceInstance.setServiceName(key.getName());
+      serviceInstance.setName(key.getName());
       value.setRegistryInfo(serviceInstance);
       serviceRegistry.register(serviceInstance);
     });

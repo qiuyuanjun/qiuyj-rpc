@@ -11,10 +11,11 @@ import java.util.List;
 public interface ServiceRegistry extends Closeable {
 
   /**
-   * 得到所有已经注册的服务
-   * @return 所有的{{@code ServiceInstance}
+   * 得到某个应用所有已发布的服务提供者
+   * @param applicationName 应用名
+   * @return 当前应用下所有已经发布的服务接口的{{@code ServiceInstance}集合
    */
-  List<ServiceInstance> registeredServiceInstances();
+  List<ServiceInstance> getProvidersByApplicationName(String applicationName);
 
   /**
    * 注册服务到服务注册中心

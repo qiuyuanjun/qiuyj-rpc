@@ -4,7 +4,7 @@ import com.qiuyj.qrpc.registry.AbstractServiceRegistry;
 import com.qiuyj.qrpc.registry.ServiceInstance;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.framework.api.CuratorEventType;
+import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.RetryOneTime;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
@@ -56,13 +56,13 @@ public class ZookeeperServiceRegistry extends AbstractServiceRegistry {
         .retryPolicy(new RetryOneTime(1000))
         .connectString(connectString)
         .build();
-    zkClient.start();
-    zkClient.getCuratorListenable().addListener((zkCli, eventType) -> {
-      if (eventType.getType() == CuratorEventType.CLOSING) {
-        // reconnect
+    zkClient.getConnectionStateListenable().addListener((zkCli, state) -> {
+      // 重新连接
+      if (state == ConnectionState.RECONNECTED) {
 
       }
     });
+    zkClient.start();
   }
 
   @Override

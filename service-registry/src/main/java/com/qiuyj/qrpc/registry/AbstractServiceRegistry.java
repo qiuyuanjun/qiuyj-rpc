@@ -1,5 +1,6 @@
 package com.qiuyj.qrpc.registry;
 
+import com.qiuyj.qrpc.registry.metadata.VersionAndWeightRegistration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,23 +21,35 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
   /**
    * 判定当前注册中心运行状态，一个jvm虚拟机只能有一个服务注册中心，不能运行多个服务注册中心
    */
-  private static final AtomicReference<ServiceRegistryState> STATE = new AtomicReference<>(ServiceRegistryState.SHUTDOWN);
+  private static final AtomicReference<ServiceRegistryState> STATE
+      = new AtomicReference<>(ServiceRegistryState.SHUTDOWN);
 
   /**
    * 等待注册到注册中心的服务队列，默认容量为128
    */
-  private final BlockingQueue<ServiceInstance> waitingForRegister = new ArrayBlockingQueue<>(128);
+  private final BlockingQueue<ServiceInstance> waitingForRegister
+      = new ArrayBlockingQueue<>(128);
 
   /**
    * 等待从注册中心注销的服务队列，默认容量为128
    */
-  private final BlockingQueue<ServiceInstance> waitingForUnregister = new ArrayBlockingQueue<>(128);
+  private final BlockingQueue<ServiceInstance> waitingForUnregister
+      = new ArrayBlockingQueue<>(128);
 
   /** 所有已经注册了的服务的{@code ServiceInstance}对象 */
   private List<ServiceInstance> serviceInstances;
 
   /** 未注册成功的{@code ServiceInstance}对象 */
-  private Set<ServiceInstance> incomplateServiceInstances = Collections.newSetFromMap(new ConcurrentHashMap<>(128));
+  private Set<ServiceInstance> incomplateServiceInstances
+      = Collections.newSetFromMap(new ConcurrentHashMap<>(128));
+
+  /** 所有应用所发布的所有服务接口，相当于provider端 */
+  private Map<String, List<VersionAndWeightRegistration>> providersMappingApplication
+      = new HashMap<>(64);
+
+  /** 所有应用所引用的所有服务接口，相当于consumer端 */
+  private Map<String, List<VersionAndWeightRegistration>> consumersMappingApplication
+      = new HashMap<>(64);
 
   protected AbstractServiceRegistry() {
     // 服务注册中心启动，必须判定shutdown为true
@@ -146,8 +159,25 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
   protected abstract void connect(HostPortPair hostAndPort, HostPortPair... more);
 
   @Override
-  public List<ServiceInstance> registeredServiceInstances() {
-    return Collections.unmodifiableList(serviceInstances);
+  @SuppressWarnings("unchecked")
+  public List<ServiceInstance> getProvidersByApplicationName(String applicationName) {
+    Objects.requireNonNull(applicationName, "applicationName == null");
+    List<VersionAndWeightRegistration> registrations = providersMappingApplication.get(applicationName);
+    List<ServiceInstance> serviceInstances = null;
+    if (Objects.nonNull(registrations)) {
+      synchronized (registrations) {
+        if (!registrations.isEmpty()) {
+          serviceInstances = new ArrayList<>(registrations.size());
+          for (VersionAndWeightRegistration registration : registrations) {
+            serviceInstances.add(new ServiceInstance(registration, applicationName));
+          }
+        }
+      }
+    }
+    if (Objects.isNull(serviceInstances)) {
+      serviceInstances = Collections.EMPTY_LIST;
+    }
+    return serviceInstances;
   }
 
   @Override
