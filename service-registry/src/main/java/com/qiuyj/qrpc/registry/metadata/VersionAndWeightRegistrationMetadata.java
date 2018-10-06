@@ -20,16 +20,12 @@ public class VersionAndWeightRegistrationMetadata extends RegistrationMetadata i
   }
 
   @Override
-  public int getWeigth() {
+  public int getWeight() {
     return weight;
   }
 
   public void setVersion(String version) {
     this.version = version;
-  }
-
-  public int getWeight() {
-    return weight;
   }
 
   public void setWeight(int weight) {
