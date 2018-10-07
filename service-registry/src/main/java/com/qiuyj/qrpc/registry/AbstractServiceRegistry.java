@@ -246,6 +246,32 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
     }
   }
 
+  /**
+   * 重新注册所有的服务
+   * @apiNote 该方法主要给子类使用，当子类获知从服务注册中心的服务器断开或者重新连接的时候，调用该方法
+   */
+  protected void reRegister() {
+    ConcurrentMap<String, List<VersionAndWeightRegistration>> snapshot = providersMappingApplication;
+    snapshot.keySet().forEach(applicationName -> {
+      // 重新注册服务，需要将已经注册了的服务全部移除
+      List<VersionAndWeightRegistration> registrations = snapshot.remove(applicationName);
+      if (Objects.nonNull(registrations)) {
+        for (VersionAndWeightRegistration registration : registrations) {
+          // 一般情况下，registration应该为ServiceInstance类型
+          // 为了以防万一，还是要做一下健壮性的判断
+          ServiceInstance serviceInstance = registration instanceof ServiceInstance
+              ? (ServiceInstance) registration
+              : new ServiceInstance(registration, applicationName);
+          // 重新注册服务
+          register(serviceInstance);
+        }
+      }
+    });
+    if (LOGGER.isInfoEnabled()) {
+      LOGGER.info("re-register all service instance successfully.");
+    }
+  }
+
   @Override
   public void unregister(ServiceInstance serviceInstance) {
     Objects.requireNonNull(serviceInstance, "serviceInstance == null");

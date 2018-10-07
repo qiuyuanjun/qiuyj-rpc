@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.stream.Collectors;
 
@@ -31,7 +32,7 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
   public static final int DEFAULT_PORT = 11221;
 
   /** 需要暴露的服务 Class -> ClassInstanceValue */
-  private final Map<Class<?>, ClassInstanceValue<?>> serviceToExports = new ConcurrentHashMap<>();
+  private final ConcurrentMap<Class<?>, ClassInstanceValue<?>> serviceToExports = new ConcurrentHashMap<>();
 
   private volatile ServiceInstanceProvider serviceInstanceProvider;
 
@@ -77,11 +78,14 @@ public abstract class AbstractRpcServer extends AbstractServer implements Config
    * 将所有需要暴露的服务注册到服务注册中心
    */
   private void registerServices() {
-    Map<Class<?>, ClassInstanceValue<?>> serviceInstanceMap = this.serviceToExports;
-    serviceInstanceMap.forEach((key, value) -> {
+    ConcurrentMap<Class<?>, ClassInstanceValue<?>> serviceInstances = serviceToExports;
+    serviceInstances.forEach((key, value) -> {
       ServiceInstance serviceInstance = new ServiceInstance();
+      // ip address
       serviceInstance.setIpAddress(getLocalAddress().getHostAddress());
+      // port
       serviceInstance.setPort(getPort());
+      // service name
       serviceInstance.setName(key.getName());
       value.setRegistryInfo(serviceInstance);
       serviceRegistry.register(serviceInstance);

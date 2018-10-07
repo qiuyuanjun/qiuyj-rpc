@@ -2,6 +2,7 @@ package com.qiuyj.qrpc.registry.zookeeper;
 
 import com.qiuyj.qrpc.registry.AbstractServiceRegistry;
 import com.qiuyj.qrpc.registry.ServiceInstance;
+import com.qiuyj.qrpc.registry.ServiceRegistryException;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.state.ConnectionState;
@@ -13,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 /**
  * zookeeper注册中心
@@ -33,7 +35,7 @@ public class ZookeeperServiceRegistry extends AbstractServiceRegistry {
   protected void checkConnectionState(boolean necessary) {
     if (necessary && !zkClient.getZookeeperClient().isConnected()) {
       // 此时，在60s没并没有连上zookeeper服务器，那么直接抛出异常
-      throw new IllegalStateException("Failed to connect to the zookeeper server.");
+      throw new ServiceRegistryException("Failed to connect to the zookeeper server.");
     }
   }
 
@@ -81,17 +83,24 @@ public class ZookeeperServiceRegistry extends AbstractServiceRegistry {
         .namespace(ZKUtils.QRPC_SERVICE_REGISTRY_TOP_LEVEL_NAME)
         .retryPolicy(new ExponentialBackoffRetry(1000, 3))
         .connectString(connectString)
+        .sessionTimeoutMs((int) TimeUnit.MINUTES.toMillis(30L)) // session超时时间为30分钟
         .build();
     zkClient.getConnectionStateListenable().addListener((zkCli, state) -> {
       if (state == ConnectionState.CONNECTED) {
+        if (LOGGER.isInfoEnabled()) {
+          LOGGER.info("Successfully connected to the zookeeper server.");
+        }
         syncConnect.countDown();
       }
       else if (state == ConnectionState.RECONNECTED) {
         // 重新注册所有服务
-
+        reRegister();
       }
       else if (state == ConnectionState.LOST) {
         // 重新连接zookeeper服务器
+        connectToServiceRegistryServer();
+        // 重新注册所有服务
+        reRegister();
       }
     });
     zkClient.start();
