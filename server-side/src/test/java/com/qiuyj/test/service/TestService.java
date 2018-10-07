@@ -1,8 +1,7 @@
 package com.qiuyj.test.service;
 
-import com.qiuyj.qrpc.commons.annotation.RpcService;
 import com.qiuyj.qrpc.commons.annotation.RpcMethod;
-import com.qiuyj.test.service.impl.TestServiceImpl;
+import com.qiuyj.qrpc.commons.annotation.RpcService;
 
 /**
  * @author qiuyj

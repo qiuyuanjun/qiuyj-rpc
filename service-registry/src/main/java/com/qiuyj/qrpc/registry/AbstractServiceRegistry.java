@@ -5,10 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -56,7 +53,15 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
       String host = "192.168.0.3";
       int port = 2181;
       // 连接服务注册中心
-      connect(new HostPortPair(host, port));
+      CountDownLatch syncConnect = new CountDownLatch(1);
+      connect(syncConnect, new HostPortPair(host, port));
+      try {
+        syncConnect.await();
+      }
+      catch (InterruptedException e) {
+        // ignore
+        LOGGER.warn("Error while waiting for connect to service registry server.", e);
+      }
       NamedThreadFactory threadFactory = new NamedThreadFactory();
       // 开启服务注册的线程
       startRegisterServiceThread(threadFactory);
@@ -162,7 +167,7 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
    * @param hostAndPort 服务注册中心的ip地址和端口映射对象
    * @param more 如果是集群，那么这里表示其他机器的ip地址和端口映射对象
    */
-  protected abstract void connect(HostPortPair hostAndPort, HostPortPair... more);
+  protected abstract void connect(CountDownLatch syncConnect, HostPortPair hostAndPort, HostPortPair... more);
 
   @Override
   public List<ServiceInstance> getProvidersByApplicationName(String applicationName) {

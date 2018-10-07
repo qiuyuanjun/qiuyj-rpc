@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 import java.util.StringJoiner;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * zookeeper注册中心
@@ -31,10 +32,13 @@ public class ZookeeperServiceRegistry extends AbstractServiceRegistry {
   @Override
   protected boolean doRegister(ServiceInstance serviceInstance) {
     // TODO: 构建path路径
-    String path = "";
+    String path = buildProviderPath(serviceInstance);
     boolean result = true;
     try {
-      zkClient.create().withMode(CreateMode.EPHEMERAL).forPath(path, EMPTY_DATA);
+      zkClient.create()
+          .creatingParentsIfNeeded()
+          .withMode(CreateMode.EPHEMERAL)
+          .forPath(path, EMPTY_DATA);
     }
     catch (Exception e) {
       LOGGER.error("Error while registering service to zookeeper.", e);
@@ -43,13 +47,28 @@ public class ZookeeperServiceRegistry extends AbstractServiceRegistry {
     return result;
   }
 
+  private static String buildProviderPath(ServiceInstance serviceInstance) {
+    return new StringBuilder(64)
+        .append("/")
+        .append(serviceInstance.getApplicationName())
+        .append("/provider/")
+        .append(serviceInstance.getName())
+        .append(":")
+        .append(serviceInstance.getVersion())
+        .append("/")
+        .append(serviceInstance.getIpAddress())
+        .append(":")
+        .append(serviceInstance.getPort())
+        .toString();
+  }
+
   @Override
   protected void doUnregister(ServiceInstance serviceInstance) {
 
   }
 
   @Override
-  protected void connect(HostPortPair hostAndPort, HostPortPair... more) {
+  protected void connect(CountDownLatch syncConnect, HostPortPair hostAndPort, HostPortPair... more) {
     String connectString = getZookeeperConnectString(hostAndPort, more);
     zkClient = CuratorFrameworkFactory.builder()
         .namespace(ZKUtils.QRPC_SERVICE_REGISTRY_TOP_LEVEL_NAME)
@@ -57,9 +76,11 @@ public class ZookeeperServiceRegistry extends AbstractServiceRegistry {
         .connectString(connectString)
         .build();
     zkClient.getConnectionStateListenable().addListener((zkCli, state) -> {
-      // 重新连接
-      if (state == ConnectionState.RECONNECTED) {
-
+      if (state == ConnectionState.CONNECTED) {
+        syncConnect.countDown();
+      }
+      else if (state == ConnectionState.RECONNECTED) {
+        // 重新注册所有服务
       }
     });
     zkClient.start();
