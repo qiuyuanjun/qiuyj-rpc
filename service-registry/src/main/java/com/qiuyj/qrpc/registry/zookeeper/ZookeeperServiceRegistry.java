@@ -5,7 +5,7 @@ import com.qiuyj.qrpc.registry.ServiceInstance;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.state.ConnectionState;
-import org.apache.curator.retry.RetryOneTime;
+import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +30,15 @@ public class ZookeeperServiceRegistry extends AbstractServiceRegistry {
   private CuratorFramework zkClient;
 
   @Override
+  protected void checkConnectionState(boolean necessary) {
+    if (necessary && !zkClient.getZookeeperClient().isConnected()) {
+      // 此时，在60s没并没有连上zookeeper服务器，那么直接抛出异常
+      throw new IllegalStateException("Failed to connect to the zookeeper server.");
+    }
+  }
+
+  @Override
   protected boolean doRegister(ServiceInstance serviceInstance) {
-    // TODO: 构建path路径
     String path = buildProviderPath(serviceInstance);
     boolean result = true;
     try {
@@ -72,7 +79,7 @@ public class ZookeeperServiceRegistry extends AbstractServiceRegistry {
     String connectString = getZookeeperConnectString(hostAndPort, more);
     zkClient = CuratorFrameworkFactory.builder()
         .namespace(ZKUtils.QRPC_SERVICE_REGISTRY_TOP_LEVEL_NAME)
-        .retryPolicy(new RetryOneTime(1000))
+        .retryPolicy(new ExponentialBackoffRetry(1000, 3))
         .connectString(connectString)
         .build();
     zkClient.getConnectionStateListenable().addListener((zkCli, state) -> {
@@ -81,6 +88,10 @@ public class ZookeeperServiceRegistry extends AbstractServiceRegistry {
       }
       else if (state == ConnectionState.RECONNECTED) {
         // 重新注册所有服务
+
+      }
+      else if (state == ConnectionState.LOST) {
+        // 重新连接zookeeper服务器
       }
     });
     zkClient.start();

@@ -49,19 +49,8 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
   protected AbstractServiceRegistry() {
     // 服务注册中心启动，必须判定shutdown为true
     if (STATE.compareAndSet(ServiceRegistryState.SHUTDOWN, ServiceRegistryState.RUNNING)) {
-      // 从配置文件读取注册中心的host和port
-      String host = "192.168.0.3";
-      int port = 2181;
       // 连接服务注册中心
-      CountDownLatch syncConnect = new CountDownLatch(1);
-      connect(syncConnect, new HostPortPair(host, port));
-      try {
-        syncConnect.await();
-      }
-      catch (InterruptedException e) {
-        // ignore
-        LOGGER.warn("Error while waiting for connect to service registry server.", e);
-      }
+      connectToServiceRegistryServer();
       NamedThreadFactory threadFactory = new NamedThreadFactory();
       // 开启服务注册的线程
       startRegisterServiceThread(threadFactory);
@@ -72,6 +61,32 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
       throw new IllegalStateException("Only one service registry can be created. Except STATE[SHUTDOWN],but STATE[" + STATE + "]");
     }
   }
+
+  /**
+   * 连接服务注册中心，该方法可以作为子类使用，在子类获知与服务注册中心失去连接的时候重连操作
+   */
+  protected void connectToServiceRegistryServer() {
+    // 从配置文件读取注册中心的host和port
+    String host = "192.168.0.3";
+    int port = 2181;
+    // 连接服务注册中心
+    CountDownLatch syncConnect = new CountDownLatch(1);
+    connect(syncConnect, new HostPortPair(host, port));
+    try {
+      syncConnect.await(1L, TimeUnit.MINUTES);
+    }
+    catch (InterruptedException e) {
+      // ignore
+      LOGGER.warn("Error while waiting for connect to service registry server.", e);
+    }
+    checkConnectionState(true);
+  }
+
+  /**
+   * 检测是否连接上注册中心
+   * @param necessary 是否有必要检测注册中心的状态，如果为true，那么如果没有连上注册中心，则抛出异常
+   */
+  protected abstract void checkConnectionState(boolean necessary);
 
   /**
    * 单独开一条线程，内部判断{@code STATE}的状态，如果是{@link ServiceRegistryState#RUNNING}
@@ -99,6 +114,9 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
         }
         if (Objects.nonNull(serviceInstance) && serviceInstance != ServiceInstance.EMPTY_SERVICE_INSTANCE) {
           if (AbstractServiceRegistry.this.doRegister(serviceInstance)) {
+            if (LOGGER.isInfoEnabled()) {
+              LOGGER.info("Register service {} successfully.", serviceInstance.getName() + ":" + serviceInstance.getVersion());
+            }
             List<VersionAndWeightRegistration> registrations
                 = AbstractServiceRegistry.this.providersMappingApplication.computeIfAbsent(
                     serviceInstance.getApplicationName(), (key) -> new ArrayList<>());
