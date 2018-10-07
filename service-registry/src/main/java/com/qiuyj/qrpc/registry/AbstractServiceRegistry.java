@@ -204,7 +204,14 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
   @Override
   public void register(ServiceInstance serviceInstance) {
     Objects.requireNonNull(serviceInstance, "serviceInstance == null");
-    if (waitingForRegister.contains(serviceInstance)) {
+    boolean exist = false;
+    List<VersionAndWeightRegistration> registrations = providersMappingApplication.get(serviceInstance.getApplicationName());
+    if (Objects.nonNull(registrations)) {
+      synchronized (registrations) {
+        exist = registrations.contains(serviceInstance);
+      }
+    }
+    if (exist || incomplateServiceInstances.contains(serviceInstance) || waitingForRegister.contains(serviceInstance)) {
       throw new ServiceRegistryException("The service to be registered already exists.");
     }
     try {
