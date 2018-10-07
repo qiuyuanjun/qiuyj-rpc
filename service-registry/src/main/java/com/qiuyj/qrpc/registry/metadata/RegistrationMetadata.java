@@ -1,6 +1,7 @@
 package com.qiuyj.qrpc.registry.metadata;
 
 import java.io.Serializable;
+import java.util.Objects;
 
 /**
  * 服务注册中心所接受的注册的源信息
@@ -9,7 +10,7 @@ import java.io.Serializable;
  */
 public class RegistrationMetadata implements Registration, Serializable {
 
-  private static final long serialVersionUID = 6916339067426198419L;
+  private static final long serialVersionUID = 1621949805514612954L;
 
   /** 服务接口的全限定名 */
   private String name;
@@ -45,5 +46,24 @@ public class RegistrationMetadata implements Registration, Serializable {
   @Override
   public int getPort() {
     return port;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof RegistrationMetadata)) {
+      return false;
+    }
+    RegistrationMetadata that = (RegistrationMetadata) o;
+    return port == that.port &&
+        Objects.equals(name, that.name) &&
+        Objects.equals(ipAddress, that.ipAddress);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(name, ipAddress, port);
   }
 }

@@ -8,6 +8,7 @@ import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -36,20 +37,17 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
   private final BlockingQueue<ServiceInstance> waitingForUnregister
       = new ArrayBlockingQueue<>(128);
 
-  /** 所有已经注册了的服务的{@code ServiceInstance}对象 */
-  private List<ServiceInstance> serviceInstances;
-
   /** 未注册成功的{@code ServiceInstance}对象 */
   private Set<ServiceInstance> incomplateServiceInstances
       = Collections.newSetFromMap(new ConcurrentHashMap<>(128));
 
   /** 所有应用所发布的所有服务接口，相当于provider端 */
-  private Map<String, List<VersionAndWeightRegistration>> providersMappingApplication
-      = new HashMap<>(64);
+  private ConcurrentMap<String, List<VersionAndWeightRegistration>> providersMappingApplication
+      = new ConcurrentHashMap<>(64);
 
   /** 所有应用所引用的所有服务接口，相当于consumer端 */
-  private Map<String, List<VersionAndWeightRegistration>> consumersMappingApplication
-      = new HashMap<>(64);
+  private ConcurrentMap<String, List<VersionAndWeightRegistration>> consumersMappingApplication
+      = new ConcurrentHashMap<>(64);
 
   protected AbstractServiceRegistry() {
     // 服务注册中心启动，必须判定shutdown为true
@@ -59,7 +57,6 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
       int port = 2181;
       // 连接服务注册中心
       connect(new HostPortPair(host, port));
-      serviceInstances = new ArrayList<>();
       NamedThreadFactory threadFactory = new NamedThreadFactory();
       // 开启服务注册的线程
       startRegisterServiceThread(threadFactory);
@@ -97,7 +94,12 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
         }
         if (Objects.nonNull(serviceInstance) && serviceInstance != ServiceInstance.EMPTY_SERVICE_INSTANCE) {
           if (AbstractServiceRegistry.this.doRegister(serviceInstance)) {
-            AbstractServiceRegistry.this.serviceInstances.add(serviceInstance);
+            List<VersionAndWeightRegistration> registrations
+                = AbstractServiceRegistry.this.providersMappingApplication.computeIfAbsent(
+                    serviceInstance.getApplicationName(), (key) -> new ArrayList<>());
+            synchronized (registrations) {
+              registrations.add(serviceInstance);
+            }
             AbstractServiceRegistry.this.incomplateServiceInstances.remove(serviceInstance);
           }
           else {
@@ -132,7 +134,11 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
         }
         if (Objects.nonNull(serviceInstance) && serviceInstance != ServiceInstance.EMPTY_SERVICE_INSTANCE) {
           AbstractServiceRegistry.this.doUnregister(serviceInstance);
-          AbstractServiceRegistry.this.serviceInstances.remove(serviceInstance);
+          // registrations一定不为null
+          List<VersionAndWeightRegistration> registrations = AbstractServiceRegistry.this.providersMappingApplication.get(serviceInstance.getApplicationName());
+          synchronized (registrations) {
+            registrations.remove(serviceInstance);
+          }
           AbstractServiceRegistry.this.incomplateServiceInstances.remove(serviceInstance);
         }
       }
@@ -159,10 +165,19 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
   protected abstract void connect(HostPortPair hostAndPort, HostPortPair... more);
 
   @Override
-  @SuppressWarnings("unchecked")
   public List<ServiceInstance> getProvidersByApplicationName(String applicationName) {
+    return fromMapping(applicationName, providersMappingApplication);
+  }
+
+  /**
+   * 从给定的map容器里面得到对应的应用所持有的{@code ServiceInstance}集合
+   * @param applicationName 应用名
+   * @param mapping map容器
+   * @return {@code ServiceInstance}集合
+   */
+  private static List<ServiceInstance> fromMapping(String applicationName, ConcurrentMap<String, List<VersionAndWeightRegistration>> mapping) {
     Objects.requireNonNull(applicationName, "applicationName == null");
-    List<VersionAndWeightRegistration> registrations = providersMappingApplication.get(applicationName);
+    List<VersionAndWeightRegistration> registrations = mapping.get(applicationName);
     List<ServiceInstance> serviceInstances = null;
     if (Objects.nonNull(registrations)) {
       synchronized (registrations) {
@@ -175,15 +190,21 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
       }
     }
     if (Objects.isNull(serviceInstances)) {
-      serviceInstances = Collections.EMPTY_LIST;
+      // from java9
+      serviceInstances = List.of();
     }
     return serviceInstances;
   }
 
   @Override
+  public List<ServiceInstance> getConsumersByApplicationName(String applicationName) {
+    return fromMapping(applicationName, consumersMappingApplication);
+  }
+
+  @Override
   public void register(ServiceInstance serviceInstance) {
     Objects.requireNonNull(serviceInstance, "serviceInstance == null");
-    if (waitingForRegister.contains(serviceInstance) || serviceInstances.contains(serviceInstance)) {
+    if (waitingForRegister.contains(serviceInstance)) {
       throw new ServiceRegistryException("The service to be registered already exists.");
     }
     try {
@@ -198,7 +219,14 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
   @Override
   public void unregister(ServiceInstance serviceInstance) {
     Objects.requireNonNull(serviceInstance, "serviceInstance == null");
-    if (!serviceInstances.contains(serviceInstance) || !incomplateServiceInstances.contains(serviceInstance)) {
+    boolean notExist = true;
+    List<VersionAndWeightRegistration> registrations = providersMappingApplication.get(serviceInstance.getApplicationName());
+    if (Objects.nonNull(registrations)) {
+      synchronized (registrations) {
+        notExist = registrations.contains(serviceInstance);
+      }
+    }
+    if (notExist && !incomplateServiceInstances.contains(serviceInstance)) {
       throw new ServiceRegistryException("The service to be unregistered not exists.");
     }
     try {
@@ -215,10 +243,8 @@ public abstract class AbstractServiceRegistry implements ServiceRegistry {
     waitingForRegister.clear();
     waitingForUnregister.clear();
     incomplateServiceInstances.clear();
-    if (Objects.nonNull(serviceInstances)) {
-      serviceInstances.clear();
-      serviceInstances = null;
-    }
+    providersMappingApplication.clear();
+    consumersMappingApplication.clear();
     doClose();
     STATE.getAndSet(ServiceRegistryState.SHUTDOWN);
 

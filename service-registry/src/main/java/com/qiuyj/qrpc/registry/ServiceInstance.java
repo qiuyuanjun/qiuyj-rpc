@@ -3,6 +3,8 @@ package com.qiuyj.qrpc.registry;
 import com.qiuyj.qrpc.registry.metadata.VersionAndWeightRegistration;
 import com.qiuyj.qrpc.registry.metadata.VersionAndWeightRegistrationMetadata;
 
+import java.util.Objects;
+
 /**
  * @author qiuyj
  * @since 2018-09-23
@@ -32,6 +34,26 @@ public class ServiceInstance extends VersionAndWeightRegistrationMetadata {
 
   public void setApplicationName(String applicationName) {
     this.applicationName = applicationName;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof ServiceInstance)) {
+      return false;
+    }
+    if (!super.equals(o)) {
+      return false;
+    }
+    ServiceInstance that = (ServiceInstance) o;
+    return Objects.equals(applicationName, that.applicationName);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(super.hashCode(), applicationName);
   }
 
   // -- for internal useage --

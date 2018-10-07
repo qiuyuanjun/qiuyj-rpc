@@ -18,6 +18,13 @@ public interface ServiceRegistry extends Closeable {
   List<ServiceInstance> getProvidersByApplicationName(String applicationName);
 
   /**
+   * 得到某个应用的所有已经消费的服务
+   * @param applicationName 应用名
+   * @return 当前应用下所有已经消费的服务接口的{{@code ServiceInstance}集合
+   */
+  List<ServiceInstance> getConsumersByApplicationName(String applicationName);
+
+  /**
    * 注册服务到服务注册中心
    * @param serviceInstance 服务实例
    */
