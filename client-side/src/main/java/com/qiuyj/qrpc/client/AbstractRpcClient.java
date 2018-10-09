@@ -1,14 +1,19 @@
 package com.qiuyj.qrpc.client;
 
 import com.qiuyj.api.Connection;
-import com.qiuyj.api.Ipv4Utils;
 import com.qiuyj.api.client.AbstractClient;
+import com.qiuyj.commons.AnnotationUtils;
 import com.qiuyj.qrpc.client.proxy.ProxyFactory;
 import com.qiuyj.qrpc.client.proxy.jdk.JdkProxyFactory;
+import com.qiuyj.qrpc.commons.annotation.RpcService;
+import com.qiuyj.qrpc.registry.ServiceInstance;
 import com.qiuyj.qrpc.registry.ServiceRegistry;
+import com.qiuyj.qrpc.registry.ServiceRegistryFactory;
+import com.qiuyj.qrpc.registry.SubscribeRequest;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -17,6 +22,15 @@ import java.util.Objects;
  */
 @SuppressWarnings("unchecked")
 public abstract class AbstractRpcClient<T> extends AbstractClient implements ConfigurableRpcClient<T> {
+
+  /**
+   * 服务注册中心，所有的客户端共享一个服务注册中心
+   */
+  private static ServiceRegistry sharedServiceRegistry;
+  static {
+    sharedServiceRegistry = ServiceRegistryFactory.getServiceRegistry();
+    Runtime.getRuntime().addShutdownHook(new Thread(() -> sharedServiceRegistry.close()));
+  }
 
   /** 服务接口 */
   private Class<T> serviceInterface;
@@ -28,13 +42,10 @@ public abstract class AbstractRpcClient<T> extends AbstractClient implements Con
   private boolean lazyInitServiceInstance;
 
   /** 远程服务器的地址 */
-  private InetSocketAddress remoteServerAddress = new InetSocketAddress(Ipv4Utils.getLocalAddress(), 11221);
+  private InetSocketAddress remoteServerAddress;
 
   /** 代理工厂 */
   private ProxyFactory proxyFactory = new JdkProxyFactory();
-
-  /** 注册中心 */
-  private ServiceRegistry serviceRegistry;
 
   protected AbstractRpcClient() {
     // for subclass
@@ -46,7 +57,21 @@ public abstract class AbstractRpcClient<T> extends AbstractClient implements Con
 
   @Override
   protected Connection doConnect() {
-    // TODO 连接注册中心，获取对应服务器的ip地址和端口的list
+    // 从服务注册中心得到当前服务的所有提供者
+    RpcService rpcService = AnnotationUtils.findAnnotation(serviceInterface, RpcService.class);
+    if (Objects.isNull(rpcService)) {
+      throw new IllegalStateException("Service interface must be annotated by @RpcService annotation.");
+    }
+    // 构建订阅请求
+    SubscribeRequest request = new SubscribeRequest();
+    request.setApplicationName(rpcService.application());
+    request.setVersion(rpcService.version());
+    request.setName(serviceInterface.getName());
+    // 从注册中心获取对应的ip地址和端口号列表
+    List<ServiceInstance> serviceInstances = sharedServiceRegistry.subscribeServiceInstances(request);
+    // TODO: 根据负载均衡算法选择一个服务连接
+    ServiceInstance choosed = serviceInstances.get(0);
+    remoteServerAddress = InetSocketAddress.createUnresolved(choosed.getIpAddress(), choosed.getPort());
     return Connection.EMPTY_CONNECTION;
   }
 

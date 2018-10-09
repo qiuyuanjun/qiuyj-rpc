@@ -25,6 +25,13 @@ public interface ServiceRegistry extends Closeable {
   List<ServiceInstance> getConsumersByApplicationName(String applicationName);
 
   /**
+   * 根据订阅请求，得到所订阅的所有的服务提供消息
+   * @param subscribeRequest 订阅请求
+   * @return 所有服务的{{@code List}集合
+   */
+  List<ServiceInstance> subscribeServiceInstances(SubscribeRequest subscribeRequest);
+
+  /**
    * 注册服务到服务注册中心
    * @param serviceInstance 服务实例
    */

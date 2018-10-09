@@ -3,14 +3,18 @@ package com.qiuyj.qrpc.registry.zookeeper;
 import com.qiuyj.qrpc.registry.AbstractServiceRegistry;
 import com.qiuyj.qrpc.registry.ServiceInstance;
 import com.qiuyj.qrpc.registry.ServiceRegistryException;
+import com.qiuyj.qrpc.registry.SubscribeRequest;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.state.ConnectionState;
 import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.zookeeper.CreateMode;
+import org.apache.zookeeper.data.Stat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.StringJoiner;
 import java.util.concurrent.CountDownLatch;
@@ -41,7 +45,7 @@ public class ZookeeperServiceRegistry extends AbstractServiceRegistry {
 
   @Override
   protected boolean doRegister(ServiceInstance serviceInstance) {
-    String path = buildProviderPath(serviceInstance);
+    String path = buildProviderPath(serviceInstance, true);
     boolean result = true;
     try {
       zkClient.create()
@@ -56,19 +60,25 @@ public class ZookeeperServiceRegistry extends AbstractServiceRegistry {
     return result;
   }
 
-  private static String buildProviderPath(ServiceInstance serviceInstance) {
-    return new StringBuilder(64)
+  /**
+   * 构建类似/{applicationName}:{serviceInterface}:{version}/providers/{ipAddress}:{port}的路径
+   */
+  private static String buildProviderPath(ServiceInstance serviceInstance, boolean provider) {
+    StringBuilder pathBuilder = new StringBuilder(64)
         .append("/")
         .append(serviceInstance.getApplicationName())
-        .append("/provider/")
+        .append(":")
         .append(serviceInstance.getName())
         .append(":")
         .append(serviceInstance.getVersion())
-        .append("/")
-        .append(serviceInstance.getIpAddress())
-        .append(":")
-        .append(serviceInstance.getPort())
-        .toString();
+        .append("/providers");
+    if (provider) {
+      pathBuilder.append("/")
+          .append(serviceInstance.getIpAddress())
+          .append(":")
+          .append(serviceInstance.getPort());
+    }
+    return pathBuilder.toString();
   }
 
   @Override
@@ -139,5 +149,62 @@ public class ZookeeperServiceRegistry extends AbstractServiceRegistry {
         .append(":")
         .append(hostAndPort.getPort())
         .toString();
+  }
+
+  @Override
+  public List<ServiceInstance> subscribeServiceInstances(SubscribeRequest subscribeRequest) {
+    ServiceInstance serviceInstance = subscribeRequestToServiceInstance(subscribeRequest);
+    String path = buildProviderPath(serviceInstance, false);
+    Stat pathStat;
+    try {
+      pathStat = zkClient.checkExists().forPath(path);
+    }
+    catch (Exception e) {
+      LOGGER.error("Query path " + path + " error.", e);
+      throw new ServiceRegistryException(e);
+    }
+    if (Objects.isNull(pathStat)) {
+      throw new ServiceRegistryException("Path " + path + " not exist.");
+    }
+    List<String> ipPorts;
+    try {
+      ipPorts = zkClient.getChildren().forPath(path);
+    }
+    catch (Exception e) {
+      LOGGER.error("Query path " + path + " error.", e);
+      throw new ServiceRegistryException(e);
+    }
+    return convertToServiceInstances(ipPorts, subscribeRequest);
+  }
+
+  private List<ServiceInstance> convertToServiceInstances(List<String> ipPorts, SubscribeRequest subscribeRequest) {
+    if (ipPorts.isEmpty()) {
+      return List.of();
+    }
+    List<ServiceInstance> serviceInstances = new ArrayList<>(ipPorts.size());
+    for (String ipPort : ipPorts) {
+      ServiceInstance serviceInstance = new ServiceInstance();
+      serviceInstance.setApplicationName(subscribeRequest.getApplicationName());
+      serviceInstance.setName(subscribeRequest.getName());
+      serviceInstance.setVersion(subscribeRequest.getVersion());
+      String[] s = ipPort.split(":");
+      serviceInstance.setIpAddress(s[0]);
+      serviceInstance.setPort(Integer.parseInt(s[1]));
+      serviceInstances.add(serviceInstance);
+    }
+    return serviceInstances;
+  }
+
+  /**
+   * 将{@code SubscribeRequest}对象转换为{@code ServiceInstance}对象
+   * @param request 请求对象
+   * @return 转换后的{{@code ServiceInstance}对象
+   */
+  private static ServiceInstance subscribeRequestToServiceInstance(SubscribeRequest request) {
+    ServiceInstance instance = new ServiceInstance();
+    instance.setApplicationName(request.getApplicationName());
+    instance.setName(request.getName());
+    instance.setVersion(request.getVersion());
+    return instance;
   }
 }
