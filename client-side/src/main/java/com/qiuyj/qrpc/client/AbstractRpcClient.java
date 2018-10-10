@@ -62,7 +62,7 @@ public abstract class AbstractRpcClient<T> extends AbstractClient implements Con
   /**
    * 构建缓存文件的文件名
    */
-  public static String buildTmpLocalCacheFilePath() {
+  static String buildTmpLocalCacheFilePath() {
     String userHome = System.getProperty("java.io.tmpdir");
     StringBuilder pathBuilder = new StringBuilder(64).append(userHome);
     if (!userHome.endsWith(File.separator)) {
