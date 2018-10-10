@@ -14,7 +14,7 @@ public class SubscribeRequest {
   private String name;
 
   public SubscribeRequest() {
-
+    // empty body
   }
 
   public SubscribeRequest(String applicationName, String version, String name) {
