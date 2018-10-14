@@ -100,7 +100,7 @@ public class NettyRpcServer extends AbstractRpcServer {
         // 服务器端待接收客户端的连接的队列长度，超过这个数量的客户端连接会抛出异常
         .option(ChannelOption.SO_BACKLOG, 1024)
         // 支持长连接
-        .childOption(ChannelOption.SO_KEEPALIVE, true)
+        .childOption(ChannelOption.SO_KEEPALIVE, Boolean.TRUE)
         // 禁止nagel算法，防止tcp粘包
         .childOption(ChannelOption.TCP_NODELAY, Boolean.TRUE)
         .childHandler(new NettyRpcChannelInitializer(asyncExecutor, serviceExporter));
